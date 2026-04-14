@@ -136,6 +136,29 @@ describe('sync integration', () => {
     expect(workEvents.length).toBe(0);
   });
 
+  test('should skip if work event exists with same title at same time', () => {
+    const workCalendar = global.CalendarApp.getDefaultCalendar();
+    const personalCalendar = global.CalendarApp.getCalendarById(Code.CONFIG.personalCalendarId);
+
+    const now = new Date();
+    const startTime = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    startTime.setHours(10, 0, 0, 0);
+    const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
+
+    // Manually copy event to work calendar with same title
+    const eventTitle = 'Doctor Appointment';
+    workCalendar.createEvent(eventTitle, startTime, endTime);
+    personalCalendar.createEvent(eventTitle, startTime, endTime);
+
+    // Run sync
+    Code.sync();
+
+    // Should NOT create blocked time since work event already exists
+    const workEvents = workCalendar.getAllEvents();
+    expect(workEvents.length).toBe(1);
+    expect(workEvents[0].getTitle()).toBe(eventTitle);
+  });
+
   test('should log sync completion stats', () => {
     const personalCalendar = global.CalendarApp.getCalendarById(Code.CONFIG.personalCalendarId);
 

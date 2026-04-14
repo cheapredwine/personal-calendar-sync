@@ -359,12 +359,19 @@ const addNewBlockedTimeEvents = (workCalendar, workEvents, personalEvents, stats
       continue;
     }
 
-    // Skip if we already created a blocked time event at this time
+    // Skip if there's already ANY work event at this time
+    // (includes our blocked time events OR manually copied events)
     const workEventList = workEvents.get(timeKey) || [];
-    const hasBlockedTime = workEventList.some(e => e.getTitle() === CONFIG.blockedTimeTitle);
-    if (hasBlockedTime) {
-      stats.skipped += syncableEvents.length;
-      continue;
+    if (workEventList.length > 0) {
+      // Check if it's our blocked time or a manually copied event with same title
+      const hasBlockedTime = workEventList.some(e => e.getTitle() === CONFIG.blockedTimeTitle);
+      const hasMatchingEvent = workEventList.some(e => 
+        syncableEvents.some(pe => pe.getTitle() === e.getTitle())
+      );
+      if (hasBlockedTime || hasMatchingEvent) {
+        stats.skipped += syncableEvents.length;
+        continue;
+      }
     }
 
     // Create one blocked time for all events at this time slot
