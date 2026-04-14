@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Google Apps Script
+.clasp.json
+.claspignore
+
+# Environment
+.env
