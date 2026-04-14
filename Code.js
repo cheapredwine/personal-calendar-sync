@@ -344,7 +344,7 @@ const addNewBlockedTimeEvents = (workCalendar, workEvents, personalEvents, stats
     }
 
     // Create new blocked time event
-    const title = personalEvent.getTitle();
+    const title = personalEvent.getTitle() || '(private or no title)';
     const startTime = personalEvent.getStartTime();
     const endTime = personalEvent.getEndTime();
     const timeStr = `${startTime.toLocaleString()} - ${endTime.toLocaleString()}`;
