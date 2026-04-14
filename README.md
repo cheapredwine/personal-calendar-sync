@@ -34,19 +34,31 @@ Update the `CONFIG` object at the top of the script:
 const CONFIG = {
   personalCalendarId: 'your.personal.email@gmail.com', // ← CHANGE THIS
   blockedTimeTitle: 'Busy Personal Time',
-  eventColor: '3', // Grape/purple
+  eventColor: '2', // Sage/pale green
   daysToSync: [0, 1, 2, 3, 4, 5, 6], // All days
   // ... see Code.js for all options
 };
 ```
 
-### 4. Grant Permissions
+### 4. Share Personal Calendar with Work Account
+
+Your work Google account needs access to your personal calendar:
+
+1. In Google Calendar (from your **personal** account), find your calendar in the left sidebar
+2. Click **⋮** → **Settings and sharing**
+3. Scroll to **"Share with specific people"**
+4. Add your **work email** with **"See all event details"** permission
+5. Click **Send**
+
+**Verify access**: From your work account, go to Google Calendar → **+** next to "Other calendars" → **Subscribe to calendar** → enter your personal email. If it adds successfully, you're good to go.
+
+### 6. Grant Permissions
 
 1. In the Google Apps Script editor, select the `sync` function from the dropdown
 2. Click the **Run** button (▶️)
 3. Grant calendar permissions when prompted
 
-### 5. Set Up Triggers
+### 7. Set Up Triggers
 
 Click the clock icon (⏰ Triggers) → **Add Trigger**
 
@@ -82,7 +94,7 @@ Click the clock icon (⏰ Triggers) → **Add Trigger**
 | `daysInPast` | Days in the past to sync | 1 |
 | `daysInFuture` | Days in the future to sync | 30 |
 | `blockedTimeTitle` | Title shown on work calendar | 'Busy Personal Time' |
-| `eventColor` | Color code (see below) | '3' (purple) |
+| `eventColor` | Color code (see below) | '2' (Sage/pale green) |
 | `ignoredPersonalEventTitles` | Event titles to skip | `['Busy w/ Work']` |
 | `syncAllDayEvents` | Whether to sync all-day events | `false` |
 | `daysToSync` | Days of week (0=Sun, 6=Sat) | `[0,1,2,3,4,5,6]` |
@@ -131,8 +143,10 @@ To see what the script is doing:
 ## Troubleshooting
 
 ### "Could not access personal calendar"
-- Verify `personalCalendarId` is correct
-- Make sure your work account has access to your personal calendar
+- Verify `personalCalendarId` is correct (the email of your personal Google account)
+- **Make sure you've shared your personal calendar with your work account** (see Step 4)
+- Verify the work account can subscribe to the personal calendar in Google Calendar
+- Try removing and re-adding the calendar share
 
 ### Events not syncing
 - Check the logs to see if events are being skipped
