@@ -92,19 +92,22 @@ Click the clock icon (⏰ Triggers) → **Add Trigger**
 ### Event Colors
 
 ```
-'0'  - No color (default)
-'1'  - Lavender
-'2'  - Sage
-'3'  - Grape (purple)
-'4'  - Flamingo (pink)
-'5'  - Banana (yellow)
-'6'  - Tangerine (orange)
-'7'  - Peacock (light blue)
-'8'  - Graphite (gray)
-'9'  - Blueberry (blue)
-'10' - Basil (green)
-'11' - Tomato (red)
+ID   | Name      | Visual Color
+'0'  | Default   | No color (pale blue)
+'1'  | Lavender  | Pale purple/blue
+'2'  | Sage      | Pale green
+'3'  | Grape     | Purple
+'4'  | Flamingo  | Pink
+'5'  | Banana    | Yellow
+'6'  | Tangerine | Orange
+'7'  | Peacock   | Light blue/teal
+'8'  | Graphite  | Gray
+'9'  | Blueberry | Blue
+'10' | Basil     | Green
+'11' | Tomato    | Red
 ```
+
+Set in `CONFIG.eventColor` using the ID string, e.g., `eventColor: '3'` for Grape (purple).
 
 ## How It Works
 

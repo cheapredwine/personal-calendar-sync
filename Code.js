@@ -393,21 +393,26 @@ After pasting this code and updating the CONFIGURATION section:
 // ============================================================================
 
 /*
-Available color codes (use via CalendarApp.EventColor):
-'0'  - CalendarApp.EventColor.PALE_BLUE (No color/default)
-'1'  - CalendarApp.EventColor.PALE_GREEN (Lavender)
-'2'  - CalendarApp.EventColor.MAUVE (Sage)
-'3'  - CalendarApp.EventColor.PALE_RED (Grape/purple)
-'4'  - CalendarApp.EventColor.YELLOW (Flamingo/pink)
-'5'  - CalendarApp.EventColor.ORANGE (Banana/yellow)
-'6'  - CalendarApp.EventColor.CYAN (Tangerine/orange)
-'7'  - CalendarApp.EventColor.GRAY (Peacock/light blue)
-'8'  - CalendarApp.EventColor.BLUE (Graphite/gray)
-'9'  - CalendarApp.EventColor.GREEN (Blueberry/blue)
-'10' - CalendarApp.EventColor.RED (Basil/green)
-'11' - CalendarApp.EventColor.BLACK (Tomato/red)
+Google Calendar Event Colors Reference:
 
-Or use named constants from CalendarApp.EventColor enum.
+ID   | Name      | Visual Color
+-----|-----------|------------------
+'0'  | Default   | No color (pale blue)
+'1'  | Lavender  | Pale purple/blue
+'2'  | Sage      | Pale green
+'3'  | Grape     | Purple
+'4'  | Flamingo  | Pink
+'5'  | Banana    | Yellow
+'6'  | Tangerine | Orange
+'7'  | Peacock   | Light blue/teal
+'8'  | Graphite  | Gray
+'9'  | Blueberry | Blue
+'10' | Basil     | Green
+'11' | Tomato    | Red
+
+To use in CONFIG.eventColor, simply use the ID as a string, e.g.:
+  eventColor: '3', // Grape (purple)
+
 Reference: https://developers.google.com/apps-script/reference/calendar/event-color
 */
 
