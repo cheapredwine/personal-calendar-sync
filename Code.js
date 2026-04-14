@@ -113,10 +113,13 @@ function sync() {
     Logger.log('=== Starting calendar sync ===');
     const startTime = Date.now();
 
-    const calendars = getCalendars();
-    if (!calendars) return;
+    const { workCalendar, personalCalendar } = getCalendars();
 
-    const { workCalendar, personalCalendar } = calendars;
+    if (!personalCalendar) {
+      Logger.log(`ERROR: Could not access personal calendar: ${CONFIG.personalCalendarId}`);
+      Logger.log('Make sure your personal calendar is shared with your work account');
+      return;
+    }
     const { startDate, endDate } = getDateRange();
 
     Logger.log(`Syncing events from ${startDate.toDateString()} to ${endDate.toDateString()}`);
@@ -143,16 +146,16 @@ function sync() {
 
 /**
  * Get calendar instances
- * @returns {{workCalendar: GoogleAppsScript.Calendar.Calendar, personalCalendar: GoogleAppsScript.Calendar.Calendar} | null}
+ * Note: This will trigger OAuth authorization if the personal calendar hasn't been accessed before
+ * @returns {{workCalendar: GoogleAppsScript.Calendar.Calendar, personalCalendar: GoogleAppsScript.Calendar.Calendar}}
  */
 const getCalendars = () => {
   const workCalendar = CalendarApp.getDefaultCalendar();
   const personalCalendar = CalendarApp.getCalendarById(CONFIG.personalCalendarId);
 
-  if (!personalCalendar) {
-    Logger.log(`ERROR: Could not access personal calendar: ${CONFIG.personalCalendarId}`);
-    return null;
-  }
+  // Note: personalCalendar may be null here if not shared, but calling getEvents()
+  // on it will trigger the authorization dialog. We check for null in fetchEventMaps
+  // after the auth flow has a chance to complete.
 
   return { workCalendar, personalCalendar };
 };
