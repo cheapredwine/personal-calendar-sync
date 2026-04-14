@@ -282,7 +282,9 @@ const shouldSyncEvent = (event) => {
   }
 
   // Skip events marked as "Free" (transparent) - they don't block time
-  if (transparency === 'TRANSPARENT') {
+  const isTransparent = transparency === 'TRANSPARENT';
+  if (isHalftime) Logger.log(`DEBUG: transparency="${transparency}", type=${typeof transparency}, length=${transparency?.length}, isTransparent=${isTransparent}`);
+  if (isTransparent) {
     if (isHalftime) Logger.log(`DEBUG: filtered by TRANSPARENT, returning FALSE`);
     return false;
   }
