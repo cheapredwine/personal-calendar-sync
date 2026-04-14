@@ -96,7 +96,7 @@ Click the clock icon (⏰ Triggers) → **Add Trigger**
 |--------|-------------|---------|
 | `personalCalendarId` | Email of your personal calendar | (required) |
 | `daysInPast` | Days in the past to sync | 1 |
-| `daysInFuture` | Days in the future to sync | 30 |
+| `daysInFuture` | Days in the future to sync | 90 |
 | `blockedTimeTitle` | Title shown on work calendar | 'Busy Personal Time' |
 | `eventColor` | Color code (see below) | '2' (Sage/pale green) |
 | `ignoredPersonalEventTitles` | Event titles to skip | `['Busy w/ Work']` |
@@ -104,6 +104,7 @@ Click the clock icon (⏰ Triggers) → **Add Trigger**
 | `daysToSync` | Days of week (0=Sun, 6=Sat) | `[0,1,2,3,4,5,6]` |
 | `rateLimitDelayMs` | Delay between operations | 1000 |
 | `lockTimeoutMs` | Lock timeout | 1500 |
+| `debugLogging` | Enable debug logging | `false` |
 
 ### Event Colors
 
