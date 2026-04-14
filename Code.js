@@ -301,13 +301,19 @@ const removeStaleBlockedTimeEvents = (workEvents, personalEvents, stats) => {
 
     if (!personalEvent) {
       // Time slot no longer exists in personal calendar - delete it
-      Logger.log(`Deleting stale event: ${timeKey}`);
+      const startTime = workEvent.getStartTime();
+      const endTime = workEvent.getEndTime();
+      const timeStr = `${startTime.toLocaleString()} - ${endTime.toLocaleString()}`;
+      Logger.log(`Deleting stale blocked time: ${timeStr}`);
       workEvent.deleteEvent();
       stats.deleted++;
       Utilities.sleep(CONFIG.rateLimitDelayMs);
     } else if (workEvent.getColor() !== CONFIG.eventColor) {
       // Event still exists, ensure color is correct
-      Logger.log(`Updating color for event: ${timeKey}`);
+      const startTime = workEvent.getStartTime();
+      const endTime = workEvent.getEndTime();
+      const timeStr = `${startTime.toLocaleString()} - ${endTime.toLocaleString()}`;
+      Logger.log(`Updating color for blocked time: ${timeStr}`);
       workEvent.setColor(CONFIG.eventColor);
       stats.updated++;
       Utilities.sleep(CONFIG.rateLimitDelayMs);
@@ -339,12 +345,15 @@ const addNewBlockedTimeEvents = (workCalendar, workEvents, personalEvents, stats
 
     // Create new blocked time event
     const title = personalEvent.getTitle();
-    Logger.log(`Creating new blocked time: ${title} (${timeKey})`);
+    const startTime = personalEvent.getStartTime();
+    const endTime = personalEvent.getEndTime();
+    const timeStr = `${startTime.toLocaleString()} - ${endTime.toLocaleString()}`;
+    Logger.log(`Creating new blocked time: "${title}" at ${timeStr}`);
 
     const newEvent = workCalendar.createEvent(
       CONFIG.blockedTimeTitle,
-      personalEvent.getStartTime(),
-      personalEvent.getEndTime()
+      startTime,
+      endTime
     );
 
     newEvent.setColor(CONFIG.eventColor);
