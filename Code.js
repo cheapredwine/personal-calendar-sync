@@ -268,11 +268,14 @@ const shouldSyncEvent = (event) => {
   const title = event.getTitle();
   const isAllDay = event.isAllDayEvent();
   const dayOfWeek = event.getStartTime().getDay();
-  const transparency = event.getTransparency ? event.getTransparency() : 'OPAQUE';
+
+  // getTransparency returns an enum, not a string - compare using CalendarApp.Transparency
+  const transparency = event.getTransparency ? event.getTransparency() : null;
+  const isTransparent = transparency === global.CalendarApp?.Transparency?.TRANSPARENT;
 
   const isHalftime = title?.includes('Halftime');
   if (isHalftime) {
-    Logger.log(`DEBUG shouldSyncEvent START: "${title}" transparency="${transparency}"`);
+    Logger.log(`DEBUG shouldSyncEvent: "${title}" transparency=${transparency}, isTransparent=${isTransparent}`);
   }
 
   // Check if event title is in ignore list
@@ -282,14 +285,10 @@ const shouldSyncEvent = (event) => {
   }
 
   // Skip events marked as "Free" (transparent) - they don't block time
-  const isTransparent = transparency === 'TRANSPARENT';
-  if (isHalftime) Logger.log(`DEBUG: transparency="${transparency}", type=${typeof transparency}, length=${transparency?.length}, isTransparent=${isTransparent}`);
   if (isTransparent) {
     if (isHalftime) Logger.log(`DEBUG: filtered by TRANSPARENT, returning FALSE`);
     return false;
   }
-
-  if (isHalftime) Logger.log(`DEBUG: passed TRANSPARENT check`);
 
   // Check if all-day events should be synced
   if (isAllDay && !CONFIG.syncAllDayEvents) {
