@@ -40,8 +40,8 @@ const CONFIG = Object.freeze({
     // Add more titles to ignore here
   ]),
 
-  // Whether to sync all-day events
-  syncAllDayEvents: false,
+  // Whether to sync all-day events (vacation, holidays, etc.)
+  syncAllDayEvents: true,
 
   // Days of week to sync (0=Sunday, 6=Saturday)
   // Set to [0,1,2,3,4,5,6] for all days, or [1,2,3,4,5] for weekdays only

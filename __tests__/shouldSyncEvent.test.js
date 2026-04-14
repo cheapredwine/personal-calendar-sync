@@ -30,9 +30,9 @@ describe('shouldSyncEvent', () => {
     expect(Code.shouldSyncEvent(event)).toBe(false);
   });
 
-  test('should return false for all-day events when syncAllDayEvents is false', () => {
+  test('should return true for all-day events by default', () => {
     const event = new MockCalendarEvent('Vacation', new Date('2026-04-14T00:00:00Z'), new Date('2026-04-15T00:00:00Z'), { isAllDay: true });
 
-    expect(Code.shouldSyncEvent(event)).toBe(false);
+    expect(Code.shouldSyncEvent(event)).toBe(true);
   });
 });
