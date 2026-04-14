@@ -270,26 +270,38 @@ const shouldSyncEvent = (event) => {
   const dayOfWeek = event.getStartTime().getDay();
   const transparency = event.getTransparency ? event.getTransparency() : 'OPAQUE';
 
+  const isHalftime = title?.includes('Halftime');
+  if (isHalftime) {
+    Logger.log(`DEBUG shouldSyncEvent START: "${title}" transparency="${transparency}"`);
+  }
+
   // Check if event title is in ignore list
   if (CONFIG.ignoredPersonalEventTitles.includes(title)) {
+    if (isHalftime) Logger.log(`DEBUG: filtered by title`);
     return false;
   }
 
   // Skip events marked as "Free" (transparent) - they don't block time
   if (transparency === 'TRANSPARENT') {
+    if (isHalftime) Logger.log(`DEBUG: filtered by TRANSPARENT, returning FALSE`);
     return false;
   }
 
+  if (isHalftime) Logger.log(`DEBUG: passed TRANSPARENT check`);
+
   // Check if all-day events should be synced
   if (isAllDay && !CONFIG.syncAllDayEvents) {
+    if (isHalftime) Logger.log(`DEBUG: filtered by all-day`);
     return false;
   }
 
   // Check day of week
   if (!CONFIG.daysToSync.includes(dayOfWeek)) {
+    if (isHalftime) Logger.log(`DEBUG: filtered by day of week`);
     return false;
   }
 
+  if (isHalftime) Logger.log(`DEBUG: returning TRUE`);
   return true;
 };
 
@@ -351,12 +363,26 @@ const removeStaleBlockedTimeEvents = (workEvents, personalEvents, stats) => {
  */
 const addNewBlockedTimeEvents = (workCalendar, workEvents, personalEvents, stats) => {
   for (const [timeKey, personalEventList] of personalEvents) {
+    // Debug: log what we found
+    const hasHalftime = personalEventList.some(e => e.getTitle()?.includes('Halftime'));
+    if (hasHalftime) {
+      Logger.log(`DEBUG addNewBlockedTimeEvents: Found ${personalEventList.length} events at ${timeKey}`);
+      for (const e of personalEventList) {
+        const shouldSync = shouldSyncEvent(e);
+        Logger.log(`  - "${e.getTitle()}": shouldSync=${shouldSync}, transparency=${e.getTransparency?.() || 'N/A'}`);
+      }
+    }
+
     // Filter events that should be synced
     const syncableEvents = personalEventList.filter(e => shouldSyncEvent(e));
 
     if (syncableEvents.length === 0) {
       stats.skipped += personalEventList.length;
       continue;
+    }
+
+    if (hasHalftime) {
+      Logger.log(`DEBUG: ${syncableEvents.length} syncable events after filter`);
     }
 
     // Skip if there's already ANY work event at this time
