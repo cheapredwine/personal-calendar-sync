@@ -21,13 +21,13 @@ describe('getDateRange', () => {
     const result = Code.getDateRange();
 
     // Calculate expected dates using the same logic as the function
-    // CONFIG.daysInPast = 1, CONFIG.daysInFuture = 30
+    // CONFIG.daysInPast = 1, CONFIG.daysInFuture = 90
     const expectedStart = new Date(mockNow);
     expectedStart.setDate(expectedStart.getDate() - 1);
     expectedStart.setHours(0, 0, 0, 0);
 
     const expectedEnd = new Date(mockNow);
-    expectedEnd.setDate(expectedEnd.getDate() + 30);
+    expectedEnd.setDate(expectedEnd.getDate() + 90);
     expectedEnd.setHours(23, 59, 59, 999);
 
     expect(result.startDate.getTime()).toBe(expectedStart.getTime());
