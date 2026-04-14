@@ -42,7 +42,6 @@ class MockCalendarEvent {
   }
 
   getTransparency() {
-    // Return the enum value - use strings that match CalendarApp.Transparency
     return this._transparency;
   }
 
@@ -138,11 +137,6 @@ const MockCalendarApp = {
     RED: '10',
     BLACK: '11',
     GRAPE: '3',
-  }),
-
-  Transparency: Object.freeze({
-    OPAQUE: 'OPAQUE',
-    TRANSPARENT: 'TRANSPARENT',
   }),
 };
 

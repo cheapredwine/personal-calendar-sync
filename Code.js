@@ -284,9 +284,9 @@ const shouldSyncEvent = (event) => {
   const isAllDay = event.isAllDayEvent();
   const dayOfWeek = event.getStartTime().getDay();
 
-  // getTransparency returns an enum, not a string - compare using CalendarApp.Transparency
-  const transparency = event.getTransparency ? event.getTransparency() : null;
-  const isTransparent = transparency === CalendarApp.Transparency.TRANSPARENT;
+  // getTransparency returns 'TRANSPARENT' for Free events, 'OPAQUE' for Busy
+  const transparency = event.getTransparency ? event.getTransparency() : 'OPAQUE';
+  const isTransparent = String(transparency).toUpperCase() === 'TRANSPARENT';
 
   // Check if event title is in ignore list
   if (CONFIG.ignoredPersonalEventTitles.includes(title)) {
