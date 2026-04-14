@@ -264,9 +264,15 @@ const shouldSyncEvent = (event) => {
   const title = event.getTitle();
   const isAllDay = event.isAllDayEvent();
   const dayOfWeek = event.getStartTime().getDay();
+  const transparency = event.getTransparency ? event.getTransparency() : 'OPAQUE';
 
   // Check if event title is in ignore list
   if (CONFIG.ignoredPersonalEventTitles.includes(title)) {
+    return false;
+  }
+
+  // Skip events marked as "Free" (transparent) - they don't block time
+  if (transparency === 'TRANSPARENT') {
     return false;
   }
 

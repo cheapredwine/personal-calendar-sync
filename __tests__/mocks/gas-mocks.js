@@ -13,6 +13,7 @@ class MockCalendarEvent {
     this._endTime = new Date(endTime);
     this._color = options.color || '0';
     this._isAllDay = options.isAllDay || false;
+    this._transparency = options.transparency || 'OPAQUE';
     this._reminders = [];
   }
 
@@ -38,6 +39,10 @@ class MockCalendarEvent {
 
   isAllDayEvent() {
     return this._isAllDay;
+  }
+
+  getTransparency() {
+    return this._transparency;
   }
 
   removeAllReminders() {

@@ -35,4 +35,16 @@ describe('shouldSyncEvent', () => {
 
     expect(Code.shouldSyncEvent(event)).toBe(true);
   });
+
+  test('should return false for events marked as Free (transparent)', () => {
+    const event = new MockCalendarEvent('Focus Time', new Date('2026-04-14T10:00:00Z'), new Date('2026-04-14T11:00:00Z'), { transparency: 'TRANSPARENT' });
+
+    expect(Code.shouldSyncEvent(event)).toBe(false);
+  });
+
+  test('should return true for Busy events (opaque)', () => {
+    const event = new MockCalendarEvent('Meeting', new Date('2026-04-14T10:00:00Z'), new Date('2026-04-14T11:00:00Z'), { transparency: 'OPAQUE' });
+
+    expect(Code.shouldSyncEvent(event)).toBe(true);
+  });
 });
