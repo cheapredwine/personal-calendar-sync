@@ -30,8 +30,8 @@ const CONFIG = Object.freeze({
   blockedTimeTitle: 'Busy Personal Time',
 
   // Event color on work calendar (see color reference at end of file)
-  // Use '3' for Grape/purple, or see CalendarApp.EventColor constants
-  eventColor: '3', // Grape/purple
+  // Use '2' for Sage/pale green, or see CalendarApp.EventColor constants
+  eventColor: '2', // Sage/pale green
 
   // Events with these titles in personal calendar will be ignored (not synced)
   ignoredPersonalEventTitles: Object.freeze([
