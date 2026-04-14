@@ -305,8 +305,11 @@ const removeStaleBlockedTimeEvents = (workEvents, personalEvents, stats) => {
 
     const personalEvent = personalEvents.get(timeKey);
 
-    if (!personalEvent) {
-      // Time slot no longer exists in personal calendar - delete it
+    // Check if personal event should NOT be synced (deleted, FREE, filtered out, etc.)
+    const shouldDelete = !personalEvent || !shouldSyncEvent(personalEvent);
+
+    if (shouldDelete) {
+      // Personal event was deleted, marked FREE, or filtered out - delete blocked time
       const startTime = workEvent.getStartTime();
       const endTime = workEvent.getEndTime();
       const timeStr = `${startTime.toLocaleString()} - ${endTime.toLocaleString()}`;
