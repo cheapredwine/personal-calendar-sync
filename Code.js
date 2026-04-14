@@ -30,7 +30,8 @@ const CONFIG = Object.freeze({
   blockedTimeTitle: 'Busy Personal Time',
 
   // Event color on work calendar (see color reference at end of file)
-  eventColor: CalendarApp.EventColor.GRAPE, // Purple
+  // Use '3' for Grape/purple, or see CalendarApp.EventColor constants
+  eventColor: '3', // Grape/purple
 
   // Events with these titles in personal calendar will be ignored (not synced)
   ignoredPersonalEventTitles: Object.freeze([
@@ -409,3 +410,24 @@ Available color codes (use via CalendarApp.EventColor):
 Or use named constants from CalendarApp.EventColor enum.
 Reference: https://developers.google.com/apps-script/reference/calendar/event-color
 */
+
+// ============================================================================
+// EXPORTS FOR TESTING (Node.js only - ignored by Google Apps Script)
+// ============================================================================
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    sync,
+    CONFIG,
+    getDateRange,
+    getEventTimeKey,
+    shouldSyncEvent,
+    buildEventMap,
+    createSyncStats,
+    getCalendars,
+    fetchEventMaps,
+    synchronizeEvents,
+    removeStaleBlockedTimeEvents,
+    addNewBlockedTimeEvents,
+  };
+}

@@ -9,5 +9,12 @@
 .clasp.json
 .claspignore
 
+# Node.js
+node_modules/
+package-lock.json
+
 # Environment
 .env
+
+# Test coverage
+coverage/

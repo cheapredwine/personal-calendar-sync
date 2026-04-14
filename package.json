@@ -1,0 +1,21 @@
+{
+  "name": "personal-calendar-sync",
+  "version": "1.1.0",
+  "description": "Google Apps Script to sync busy time from personal calendar to work calendar",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "keywords": [
+    "google-apps-script",
+    "calendar",
+    "sync",
+    "automation"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/google-apps-script": "^1.0.97",
+    "jest": "^29.7.0"
+  }
+}

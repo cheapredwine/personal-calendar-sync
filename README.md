@@ -150,7 +150,46 @@ This script improves upon existing calendar sync solutions:
 - **Better logging**: Detailed stats on what changed
 - **Safer**: Lock mechanism and rate limiting
 
-## License
+## Development
+
+### Running Tests
+
+This project includes a Jest test suite for validating the sync logic:
+
+```bash
+# Install dependencies
+npm install
+
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+### Project Structure
+
+```
+.
+├── Code.js                 # Main Google Apps Script
+├── README.md              # This file
+├── CHANGELOG.md           # Version history
+├── CONTRIBUTING.md        # Contribution guidelines
+├── package.json           # Node.js dependencies
+├── jest.config.js         # Jest configuration
+└── __tests__/
+    ├── mocks/
+    │   └── gas-mocks.js   # GAS API mocks for testing
+    ├── getDateRange.test.js
+    ├── getEventTimeKey.test.js
+    ├── shouldSyncEvent.test.js
+    ├── buildEventMap.test.js
+    ├── createSyncStats.test.js
+    └── sync.test.js
+```
 
 MIT License - feel free to modify and use as needed.
 
