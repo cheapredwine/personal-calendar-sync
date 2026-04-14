@@ -88,8 +88,8 @@ const CONFIG = Object.freeze({
 
 /**
  * @typedef {Object} CalendarEventMaps
- * @property {Map<string, GoogleAppsScript.Calendar.CalendarEvent>} workEvents
- * @property {Map<string, GoogleAppsScript.Calendar.CalendarEvent>} personalEvents
+ * @property {Map<string, GoogleAppsScript.Calendar.CalendarEvent[]>} workEvents
+ * @property {Map<string, GoogleAppsScript.Calendar.CalendarEvent[]>} personalEvents
  */
 
 // ============================================================================
@@ -181,7 +181,11 @@ const fetchEventMaps = (workCalendar, personalCalendar, startDate, endDate) => (
 const buildEventMap = (events) => {
   const map = new Map();
   for (const event of events) {
-    map.set(getEventTimeKey(event), event);
+    const key = getEventTimeKey(event);
+    if (!map.has(key)) {
+      map.set(key, []);
+    }
+    map.get(key).push(event);
   }
   return map;
 };
@@ -189,7 +193,7 @@ const buildEventMap = (events) => {
 /**
  * Execute the sync algorithm
  * @param {GoogleAppsScript.Calendar.Calendar} workCalendar
- * @param {CalendarEventMaps} eventMaps
+ * @param {{workEvents: Map<string, GoogleAppsScript.Calendar.CalendarEvent[]>, personalEvents: Map<string, GoogleAppsScript.Calendar.CalendarEvent[]>}} eventMaps
  * @param {SyncStats} stats
  * @returns {void}
  */
@@ -291,41 +295,48 @@ const shouldSyncEvent = (event) => {
 
 /**
  * Remove blocked time events from work calendar that no longer exist in personal calendar
- * @param {Map<string, GoogleAppsScript.Calendar.CalendarEvent>} workEvents
- * @param {Map<string, GoogleAppsScript.Calendar.CalendarEvent>} personalEvents
+ * @param {Map<string, GoogleAppsScript.Calendar.CalendarEvent[]>} workEvents
+ * @param {Map<string, GoogleAppsScript.Calendar.CalendarEvent[]>} personalEvents
  * @param {SyncStats} stats
  * @returns {void}
  */
 const removeStaleBlockedTimeEvents = (workEvents, personalEvents, stats) => {
-  for (const [timeKey, workEvent] of workEvents) {
-    // Only process events that we created (have our blocked time title)
-    if (workEvent.getTitle() !== CONFIG.blockedTimeTitle) {
+  for (const [timeKey, workEventList] of workEvents) {
+    // Find all blocked time events at this timeKey (there could be multiple if we created duplicates)
+    const blockedTimeEvents = workEventList.filter(e => e.getTitle() === CONFIG.blockedTimeTitle);
+
+    if (blockedTimeEvents.length === 0) {
       continue;
     }
 
-    const personalEvent = personalEvents.get(timeKey);
+    const personalEventList = personalEvents.get(timeKey);
+    // Check if ANY personal event at this time should be synced
+    const hasValidPersonalEvent = personalEventList?.some(e => shouldSyncEvent(e));
 
-    // Check if personal event should NOT be synced (deleted, FREE, filtered out, etc.)
-    const shouldDelete = !personalEvent || !shouldSyncEvent(personalEvent);
-
-    if (shouldDelete) {
-      // Personal event was deleted, marked FREE, or filtered out - delete blocked time
-      const startTime = workEvent.getStartTime();
-      const endTime = workEvent.getEndTime();
-      const timeStr = `${startTime.toLocaleString()} - ${endTime.toLocaleString()}`;
-      Logger.log(`Deleting stale blocked time: ${timeStr}`);
-      workEvent.deleteEvent();
-      stats.deleted++;
-      Utilities.sleep(CONFIG.rateLimitDelayMs);
-    } else if (workEvent.getColor() !== CONFIG.eventColor) {
-      // Event still exists, ensure color is correct
-      const startTime = workEvent.getStartTime();
-      const endTime = workEvent.getEndTime();
-      const timeStr = `${startTime.toLocaleString()} - ${endTime.toLocaleString()}`;
-      Logger.log(`Updating color for blocked time: ${timeStr}`);
-      workEvent.setColor(CONFIG.eventColor);
-      stats.updated++;
-      Utilities.sleep(CONFIG.rateLimitDelayMs);
+    if (!hasValidPersonalEvent) {
+      // Personal event was deleted, marked FREE, or filtered out - delete ALL blocked times at this slot
+      for (const workEvent of blockedTimeEvents) {
+        const startTime = workEvent.getStartTime();
+        const endTime = workEvent.getEndTime();
+        const timeStr = `${startTime.toLocaleString()} - ${endTime.toLocaleString()}`;
+        Logger.log(`Deleting stale blocked time: ${timeStr}`);
+        workEvent.deleteEvent();
+        stats.deleted++;
+        Utilities.sleep(CONFIG.rateLimitDelayMs);
+      }
+    } else {
+      // Event still exists, ensure color is correct on all blocked times
+      for (const workEvent of blockedTimeEvents) {
+        if (workEvent.getColor() !== CONFIG.eventColor) {
+          const startTime = workEvent.getStartTime();
+          const endTime = workEvent.getEndTime();
+          const timeStr = `${startTime.toLocaleString()} - ${endTime.toLocaleString()}`;
+          Logger.log(`Updating color for blocked time: ${timeStr}`);
+          workEvent.setColor(CONFIG.eventColor);
+          stats.updated++;
+          Utilities.sleep(CONFIG.rateLimitDelayMs);
+        }
+      }
     }
   }
 };
@@ -333,41 +344,37 @@ const removeStaleBlockedTimeEvents = (workEvents, personalEvents, stats) => {
 /**
  * Add new blocked time events to work calendar for personal events
  * @param {GoogleAppsScript.Calendar.Calendar} workCalendar
- * @param {Map<string, GoogleAppsScript.Calendar.CalendarEvent>} workEvents
- * @param {Map<string, GoogleAppsScript.Calendar.CalendarEvent>} personalEvents
+ * @param {Map<string, GoogleAppsScript.Calendar.CalendarEvent[]>} workEvents
+ * @param {Map<string, GoogleAppsScript.Calendar.CalendarEvent[]>} personalEvents
  * @param {SyncStats} stats
  * @returns {void}
  */
 const addNewBlockedTimeEvents = (workCalendar, workEvents, personalEvents, stats) => {
-  for (const [timeKey, personalEvent] of personalEvents) {
-    // Skip if event shouldn't be synced based on filters
-    if (!shouldSyncEvent(personalEvent)) {
-      stats.skipped++;
+  for (const [timeKey, personalEventList] of personalEvents) {
+    // Filter events that should be synced
+    const syncableEvents = personalEventList.filter(e => shouldSyncEvent(e));
+
+    if (syncableEvents.length === 0) {
+      stats.skipped += personalEventList.length;
       continue;
     }
 
     // Skip if we already created a blocked time event at this time
-    const existingWorkEvent = workEvents.get(timeKey);
-    if (existingWorkEvent?.getTitle() === CONFIG.blockedTimeTitle) {
+    const workEventList = workEvents.get(timeKey) || [];
+    const hasBlockedTime = workEventList.some(e => e.getTitle() === CONFIG.blockedTimeTitle);
+    if (hasBlockedTime) {
+      stats.skipped += syncableEvents.length;
       continue;
     }
-    // Debug: log if there's a mismatch
-    if (existingWorkEvent) {
-      Logger.log(`DEBUG: Found event at ${timeKey} but title is "${existingWorkEvent.getTitle()}" (expected "${CONFIG.blockedTimeTitle}")`);
-    }
 
-    // Create new blocked time event
-    const title = personalEvent.getTitle() || '(private or no title)';
-    const startTime = personalEvent.getStartTime();
-    const endTime = personalEvent.getEndTime();
+    // Create one blocked time for all events at this time slot
+    // Use the first event's time for the blocked event
+    const representativeEvent = syncableEvents[0];
+    const title = representativeEvent.getTitle() || '(private or no title)';
+    const startTime = representativeEvent.getStartTime();
+    const endTime = representativeEvent.getEndTime();
     const timeStr = `${startTime.toLocaleString()} - ${endTime.toLocaleString()}`;
-    Logger.log(`Creating new blocked time: "${title}" at ${timeStr} [key: ${timeKey}]`);
-    Logger.log(`DEBUG: workEvents has ${workEvents.size} events, looking for key: ${timeKey}`);
-    if (workEvents.has(timeKey)) {
-      Logger.log(`DEBUG: Found event at key, title: "${workEvents.get(timeKey)?.getTitle()}"`);
-    } else {
-      Logger.log(`DEBUG: No event found at key ${timeKey}`);
-    }
+    Logger.log(`Creating new blocked time: "${title}" at ${timeStr}`);
 
     const newEvent = workCalendar.createEvent(
       CONFIG.blockedTimeTitle,

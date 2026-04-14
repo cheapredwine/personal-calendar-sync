@@ -26,10 +26,10 @@ describe('buildEventMap', () => {
     expect(result.size).toBe(2);
     expect(result.has(Code.getEventTimeKey(events[0]))).toBe(true);
     expect(result.has(Code.getEventTimeKey(events[1]))).toBe(true);
-    expect(result.get(Code.getEventTimeKey(events[0]))).toBe(events[0]);
+    expect(result.get(Code.getEventTimeKey(events[0]))).toEqual([events[0]]);
   });
 
-  test('should handle events with same time key (later events overwrite earlier)', () => {
+  test('should handle events with same time key (stores all events in array)', () => {
     const start = new Date('2026-04-14T10:00:00Z');
     const end = new Date('2026-04-14T11:00:00Z');
 
@@ -39,6 +39,6 @@ describe('buildEventMap', () => {
     const result = Code.buildEventMap([event1, event2]);
 
     expect(result.size).toBe(1);
-    expect(result.get(Code.getEventTimeKey(event1))).toBe(event2);
+    expect(result.get(Code.getEventTimeKey(event1))).toEqual([event1, event2]);
   });
 });
