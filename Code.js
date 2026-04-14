@@ -351,13 +351,23 @@ const addNewBlockedTimeEvents = (workCalendar, workEvents, personalEvents, stats
     if (existingWorkEvent?.getTitle() === CONFIG.blockedTimeTitle) {
       continue;
     }
+    // Debug: log if there's a mismatch
+    if (existingWorkEvent) {
+      Logger.log(`DEBUG: Found event at ${timeKey} but title is "${existingWorkEvent.getTitle()}" (expected "${CONFIG.blockedTimeTitle}")`);
+    }
 
     // Create new blocked time event
     const title = personalEvent.getTitle() || '(private or no title)';
     const startTime = personalEvent.getStartTime();
     const endTime = personalEvent.getEndTime();
     const timeStr = `${startTime.toLocaleString()} - ${endTime.toLocaleString()}`;
-    Logger.log(`Creating new blocked time: "${title}" at ${timeStr}`);
+    Logger.log(`Creating new blocked time: "${title}" at ${timeStr} [key: ${timeKey}]`);
+    Logger.log(`DEBUG: workEvents has ${workEvents.size} events, looking for key: ${timeKey}`);
+    if (workEvents.has(timeKey)) {
+      Logger.log(`DEBUG: Found event at key, title: "${workEvents.get(timeKey)?.getTitle()}"`);
+    } else {
+      Logger.log(`DEBUG: No event found at key ${timeKey}`);
+    }
 
     const newEvent = workCalendar.createEvent(
       CONFIG.blockedTimeTitle,
