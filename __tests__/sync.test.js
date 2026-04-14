@@ -72,6 +72,31 @@ describe('sync integration', () => {
     expect(workEvents.length).toBe(1);
   });
 
+  test('should create blocked time even when work meeting exists at same time', () => {
+    const workCalendar = global.CalendarApp.getDefaultCalendar();
+    const personalCalendar = global.CalendarApp.getCalendarById(Code.CONFIG.personalCalendarId);
+
+    const now = new Date();
+    const startTime = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    startTime.setHours(10, 0, 0, 0);
+    const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
+
+    // Add work meeting to work calendar
+    workCalendar.createEvent('Team Standup', startTime, endTime);
+
+    // Add personal event at same time
+    personalCalendar.createEvent('Doctor Appointment', startTime, endTime);
+
+    // Run sync
+    Code.sync();
+
+    // Should have both events - work meeting and blocked time
+    const workEvents = workCalendar.getAllEvents();
+    expect(workEvents.length).toBe(2);
+    expect(workEvents.some(e => e.getTitle() === 'Team Standup')).toBe(true);
+    expect(workEvents.some(e => e.getTitle() === Code.CONFIG.blockedTimeTitle)).toBe(true);
+  });
+
   test('should delete stale blocked time events', () => {
     const workCalendar = global.CalendarApp.getDefaultCalendar();
 

@@ -328,8 +328,9 @@ const addNewBlockedTimeEvents = (workCalendar, workEvents, personalEvents, stats
       continue;
     }
 
-    // Skip if already exists in work calendar (any event at this time)
-    if (workEvents.has(timeKey)) {
+    // Skip if we already created a blocked time event at this time
+    const existingWorkEvent = workEvents.get(timeKey);
+    if (existingWorkEvent?.getTitle() === CONFIG.blockedTimeTitle) {
       continue;
     }
 
