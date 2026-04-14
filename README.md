@@ -213,9 +213,3 @@ npm run test:coverage
 ```
 
 MIT License - feel free to modify and use as needed.
-
-## Credits
-
-Inspired by:
-- [Vitali Lovich's original script](https://wiki.cfdata.org/spaces/~vlovich/pages/441910222/Share+busy+time+from+personal+calendar)
-- [Jaryl Chng's v2 improvements](https://wiki.cfdata.org/spaces/~jaryl/pages/571525056/Share+and+sync+busy+time+from+personal+calendar+v2)
