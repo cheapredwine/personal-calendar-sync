@@ -313,6 +313,10 @@ const removeStaleBlockedTimeEvents = (workEvents, personalEvents, stats) => {
     }
 
     const personalEventList = personalEvents.get(timeKey);
+    // Debug: log what we're checking
+    if (CONFIG.debugLogging) {
+      Logger.log(`Checking timeKey ${timeKey}: ${blockedTimeEvents.length} blocked events, ${personalEventList?.length || 0} personal events`);
+    }
     // Check if ANY personal event at this time should be synced
     const hasValidPersonalEvent = personalEventList?.some(e => shouldSyncEvent(e));
 
