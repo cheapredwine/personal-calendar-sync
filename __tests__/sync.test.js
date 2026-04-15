@@ -116,7 +116,7 @@ describe('sync integration', () => {
     expect(workEvents.length).toBe(0);
   });
 
-  test('should skip events with ignored titles', () => {
+  test('should NEVER delete non-blocked-time work events (safety guard)', () => {
     const workCalendar = global.CalendarApp.getDefaultCalendar();
     const personalCalendar = global.CalendarApp.getCalendarById(Code.CONFIG.personalCalendarId);
 
@@ -125,15 +125,23 @@ describe('sync integration', () => {
     startTime.setHours(10, 0, 0, 0);
     const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
 
-    // Add an ignored event
-    personalCalendar.createEvent('Busy w/ Work', startTime, endTime);
+    // Add a regular work meeting (not blocked time)
+    const workMeeting = workCalendar.createEvent('Critical Work Meeting', startTime, endTime);
+
+    // Add a personal event at same time (different title than work meeting)
+    personalCalendar.createEvent('Personal Appointment', startTime, endTime);
 
     // Run sync
     Code.sync();
 
-    // No blocked time should be created
-    const workEvents = workCalendar.getAllEvents();
-    expect(workEvents.length).toBe(0);
+    // The work meeting should NOT be deleted - only blocked time events are ever deleted
+    expect(workMeeting.isDeleted()).toBe(false);
+
+    // Both events should exist (work meeting + blocked time created for personal event)
+    const remainingWorkEvents = workCalendar.getAllEvents().filter(e => !e.isDeleted());
+    expect(remainingWorkEvents.length).toBe(2);
+    expect(remainingWorkEvents.some(e => e.getTitle() === 'Critical Work Meeting')).toBe(true);
+    expect(remainingWorkEvents.some(e => e.getTitle() === Code.CONFIG.blockedTimeTitle)).toBe(true);
   });
 
   test('should skip if work event exists with same title at same time', () => {

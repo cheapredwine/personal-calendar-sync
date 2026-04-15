@@ -36,13 +36,6 @@ const CONFIG = Object.freeze({
   // Use '2' for Sage/pale green, or see CalendarApp.EventColor constants
   eventColor: '2', // Sage/pale green
 
-  // Events with these titles in personal calendar will be ignored (not synced)
-  ignoredPersonalEventTitles: Object.freeze([
-    'Busy w/ Work',
-    'Work Meeting',
-    // Add more titles to ignore here
-  ]),
-
   // Whether to sync all-day events (vacation, holidays, etc.)
   syncAllDayEvents: true,
 
@@ -68,7 +61,6 @@ const CONFIG = Object.freeze({
  * @property {number} daysInFuture
  * @property {string} blockedTimeTitle
  * @property {string} eventColor
- * @property {ReadonlyArray<string>} ignoredPersonalEventTitles
  * @property {boolean} syncAllDayEvents
  * @property {ReadonlyArray<number>} daysToSync
  * @property {number} rateLimitDelayMs
@@ -280,18 +272,12 @@ const getEventTimeKey = (event) => {
  * @returns {boolean}
  */
 const shouldSyncEvent = (event) => {
-  const title = event.getTitle();
   const isAllDay = event.isAllDayEvent();
   const dayOfWeek = event.getStartTime().getDay();
 
   // getTransparency returns 'TRANSPARENT' for Free events, 'OPAQUE' for Busy
   const transparency = event.getTransparency ? event.getTransparency() : 'OPAQUE';
   const isTransparent = String(transparency).toUpperCase() === 'TRANSPARENT';
-
-  // Check if event title is in ignore list
-  if (CONFIG.ignoredPersonalEventTitles.includes(title)) {
-    return false;
-  }
 
   // Skip events marked as "Free" (transparent) - they don't block time
   if (isTransparent) {
