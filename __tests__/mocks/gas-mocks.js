@@ -14,6 +14,7 @@ class MockCalendarEvent {
     this._color = options.color || '0';
     this._isAllDay = options.isAllDay || false;
     this._transparency = options.transparency || 'OPAQUE';
+    this._originalCalendarId = options.originalCalendarId || null;
     this._reminders = [];
   }
 
@@ -56,6 +57,10 @@ class MockCalendarEvent {
   isDeleted() {
     return this._deleted || false;
   }
+
+  getOriginalCalendarId() {
+    return this._originalCalendarId;
+  }
 }
 
 // ============================================================================
@@ -63,8 +68,9 @@ class MockCalendarEvent {
 // ============================================================================
 
 class MockCalendar {
-  constructor(name = 'Test Calendar') {
+  constructor(name = 'Test Calendar', id = null) {
     this._name = name;
+    this._id = id;
     this._events = [];
   }
 
@@ -78,8 +84,12 @@ class MockCalendar {
     });
   }
 
-  createEvent(title, startTime, endTime) {
-    const event = new MockCalendarEvent(title, startTime, endTime);
+  createEvent(title, startTime, endTime, options = {}) {
+    const eventOptions = {
+      ...options,
+      originalCalendarId: this._id,
+    };
+    const event = new MockCalendarEvent(title, startTime, endTime, eventOptions);
     this._events.push(event);
     return event;
   }

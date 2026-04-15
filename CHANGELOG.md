@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-04-15
+
+### Added
+- Filter events by original calendar ID using `getOriginalCalendarId()`
+- Events from shared/delegated calendars are now automatically excluded from sync
+- Only events originally created in your primary personal calendar are synced
+
+### Changed
+- `shouldSyncEvent()` now requires `personalCalendarId` parameter to validate event origin
+- Updated `synchronizeEvents()`, `removeStaleBlockedTimeEvents()`, and `addNewBlockedTimeEvents()` to pass calendar ID
+
 ## [1.2.0] - 2026-04-14
 
 ### Added

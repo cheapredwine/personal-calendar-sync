@@ -25,7 +25,7 @@ describe('sync integration', () => {
 
     // Setup test calendars
     const workCalendar = global.CalendarApp.getDefaultCalendar();
-    const personalCalendar = new MockCalendar('Personal');
+    const personalCalendar = new MockCalendar('Personal', Code.CONFIG.personalCalendarId);
     global.CalendarApp._addCalendar(Code.CONFIG.personalCalendarId, personalCalendar);
   });
 

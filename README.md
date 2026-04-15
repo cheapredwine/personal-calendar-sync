@@ -158,17 +158,22 @@ To see what the script is doing:
 - Verify `daysToSync` includes the day of week
 
 ### Phantom blocks appearing (no corresponding personal event)
-Shared calendars you have access to on your personal account can cause "phantom" blocks even if unchecked in the UI. The script sees ALL events from ALL calendars you have access to.
+Shared calendars you previously subscribed to can leave "ghost" events that still appear when querying your calendar. The script now uses `getOriginalCalendarId()` to filter out events that didn't originate from your primary personal calendar.
 
-**Fix:** Unsubscribe from the shared calendar completely (not just uncheck it):
+**If you still see unwanted events:**
 1. Go to your personal Google Calendar
 2. Find the shared calendar under "Other calendars"
 3. Click ⋮ → "Settings and sharing" → "Unsubscribe"
 
-**Note:** The script cannot identify which calendar an event originated from.
+Events from shared calendars will be automatically filtered out based on their original calendar ID.
 
 ### Which personal calendars are synced?
-Only your **primary calendar** (the one with your email address) is synced. Other calendars you own (like "car" or "vacation") are **not** synced unless explicitly configured. The script uses `personalCalendarId` to fetch exactly one calendar.
+Only your **primary calendar** (the one matching your `personalCalendarId`) is synced. The script:
+- Fetches events from the calendar specified by `personalCalendarId`
+- Filters out events that originated from other calendars (shared calendars, delegated calendars, etc.) using `getOriginalCalendarId()`
+- Only syncs events that were originally created in your primary calendar
+
+Other calendars you own (like "car" or "vacation") are **not** synced unless explicitly configured as the `personalCalendarId`.
 
 ### "Script already running"
 - This is normal - the lock prevents concurrent executions

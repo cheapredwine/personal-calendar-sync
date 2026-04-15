@@ -135,7 +135,7 @@ function sync() {
     Logger.log(`Found ${eventMaps.workEvents.size} work events, ${eventMaps.personalEvents.size} personal events`);
 
     const stats = createSyncStats();
-    synchronizeEvents(workCalendar, eventMaps, stats);
+    synchronizeEvents(workCalendar, eventMaps, stats, CONFIG.personalCalendarId);
 
     logCompletionStats(stats, startTime);
 
@@ -202,11 +202,12 @@ const buildEventMap = (events) => {
  * @param {GoogleAppsScript.Calendar.Calendar} workCalendar
  * @param {{workEvents: Map<string, GoogleAppsScript.Calendar.CalendarEvent[]>, personalEvents: Map<string, GoogleAppsScript.Calendar.CalendarEvent[]>}} eventMaps
  * @param {SyncStats} stats
+ * @param {string} personalCalendarId - The ID of the primary personal calendar
  * @returns {void}
  */
-const synchronizeEvents = (workCalendar, { workEvents, personalEvents }, stats) => {
-  removeStaleBlockedTimeEvents(workEvents, personalEvents, stats);
-  addNewBlockedTimeEvents(workCalendar, workEvents, personalEvents, stats);
+const synchronizeEvents = (workCalendar, { workEvents, personalEvents }, stats, personalCalendarId) => {
+  removeStaleBlockedTimeEvents(workEvents, personalEvents, stats, personalCalendarId);
+  addNewBlockedTimeEvents(workCalendar, workEvents, personalEvents, stats, personalCalendarId);
 };
 
 /**
@@ -269,9 +270,16 @@ const getEventTimeKey = (event) => {
 /**
  * Check if a personal event should be synced based on configuration
  * @param {GoogleAppsScript.Calendar.CalendarEvent} event
+ * @param {string} personalCalendarId - The ID of the primary personal calendar
  * @returns {boolean}
  */
-const shouldSyncEvent = (event) => {
+const shouldSyncEvent = (event, personalCalendarId) => {
+  // Only sync events from the primary personal calendar, not shared calendars
+  const originalCalendarId = event.getOriginalCalendarId();
+  if (originalCalendarId && originalCalendarId !== personalCalendarId) {
+    return false;
+  }
+
   const isAllDay = event.isAllDayEvent();
   const dayOfWeek = event.getStartTime().getDay();
 
@@ -301,9 +309,10 @@ const shouldSyncEvent = (event) => {
  * @param {Map<string, GoogleAppsScript.Calendar.CalendarEvent[]>} workEvents
  * @param {Map<string, GoogleAppsScript.Calendar.CalendarEvent[]>} personalEvents
  * @param {SyncStats} stats
+ * @param {string} personalCalendarId - The ID of the primary personal calendar
  * @returns {void}
  */
-const removeStaleBlockedTimeEvents = (workEvents, personalEvents, stats) => {
+const removeStaleBlockedTimeEvents = (workEvents, personalEvents, stats, personalCalendarId) => {
   for (const [timeKey, workEventList] of workEvents) {
     // Find all blocked time events at this timeKey (there could be multiple if we created duplicates)
     const blockedTimeEvents = workEventList.filter(e => e.getTitle() === CONFIG.blockedTimeTitle);
@@ -318,7 +327,7 @@ const removeStaleBlockedTimeEvents = (workEvents, personalEvents, stats) => {
       Logger.log(`Checking timeKey ${timeKey}: ${blockedTimeEvents.length} blocked events, ${personalEventList?.length || 0} personal events`);
     }
     // Check if ANY personal event at this time should be synced
-    const hasValidPersonalEvent = personalEventList?.some(e => shouldSyncEvent(e));
+    const hasValidPersonalEvent = personalEventList?.some(e => shouldSyncEvent(e, personalCalendarId));
 
     if (!hasValidPersonalEvent) {
       // Personal event was deleted, marked FREE, or filtered out - delete ALL blocked times at this slot
@@ -354,12 +363,13 @@ const removeStaleBlockedTimeEvents = (workEvents, personalEvents, stats) => {
  * @param {Map<string, GoogleAppsScript.Calendar.CalendarEvent[]>} workEvents
  * @param {Map<string, GoogleAppsScript.Calendar.CalendarEvent[]>} personalEvents
  * @param {SyncStats} stats
+ * @param {string} personalCalendarId - The ID of the primary personal calendar
  * @returns {void}
  */
-const addNewBlockedTimeEvents = (workCalendar, workEvents, personalEvents, stats) => {
+const addNewBlockedTimeEvents = (workCalendar, workEvents, personalEvents, stats, personalCalendarId) => {
   for (const [timeKey, personalEventList] of personalEvents) {
     // Filter events that should be synced
-    const syncableEvents = personalEventList.filter(e => shouldSyncEvent(e));
+    const syncableEvents = personalEventList.filter(e => shouldSyncEvent(e, personalCalendarId));
 
     if (syncableEvents.length === 0) {
       stats.skipped += personalEventList.length;
