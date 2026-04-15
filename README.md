@@ -5,8 +5,8 @@ A Google Apps Script that automatically syncs busy time from your personal Googl
 ## Features
 
 - ✅ **One-way sync**: Personal calendar → Work calendar
-- ✅ **Configurable filtering**: Skip specific events, certain days, or all-day events
-- ✅ **Duplicate prevention**: Won't create blocked time if work event already exists
+- ✅ **Duplicate prevention**: Won't create blocked time if you already have a work event at that time
+- ✅ **All-day event support**: Vacation and holidays sync as full-day blocks
 - ✅ **FREE event support**: Events marked "Free" on personal calendar are skipped
 - ✅ **Rate limiting & locking**: Prevents API quota issues and race conditions
 
@@ -46,14 +46,17 @@ Your work Google account needs access to your personal calendar:
 1. In Google Calendar (from your **personal** account), find your calendar in the left sidebar
 2. Click **⋮** → **Settings and sharing**
 3. Scroll to **"Share with specific people"**
-4. Add your **work email** with one of these permissions:
-   - **"See only free/busy"** - Faster setup, syncs all busy times
-   - **"See all event details"** - Required if you want to filter by event title or skip all-day events
+4. Add your **work email** with permission: **"See only free/busy"**
 5. Click **Send**
 
-**Verify access**: From your work account, go to Google Calendar → **+** next to "Other calendars" → **Subscribe to calendar** → enter your personal email. If it adds successfully, you're good to go.
+**What this does**: 
+- Your work account sees when you're busy on your personal calendar (but not event titles/details)
+- The script creates "Busy Personal Time" blocks on your work calendar for all busy times
+- **FREE events are skipped**: Events you mark as "Free" availability on your personal calendar won't sync
+- **All-day events sync**: Vacation, holidays, and other all-day events create full-day blocks
+- **Duplicate prevention**: Won't create a block if you already have a work event at that time
 
-> **Note**: If you use "See only free/busy", the `ignoredPersonalEventTitles` and `syncAllDayEvents` filters won't work (event titles are hidden). All busy times will be synced.
+**Verify access**: From your work account, go to Google Calendar → **+** next to "Other calendars" → **Subscribe to calendar** → enter your personal email. If it adds successfully, you're good to go.
 
 ### 5. Grant Permissions
 
@@ -98,9 +101,7 @@ Click the clock icon (⏰ Triggers) → **Add Trigger**
 | `daysInFuture` | Days in the future to sync | 90 |
 | `blockedTimeTitle` | Title shown on work calendar | 'Busy Personal Time' |
 | `eventColor` | Color code (see below) | '2' (Sage/pale green) |
-| `ignoredPersonalEventTitles` | Event titles to skip | `['Busy w/ Work']` |
-| `syncAllDayEvents` | Whether to sync all-day events (vacation, holidays) | `true` |
-| `daysToSync` | Days of week (0=Sun, 6=Sat) | `[0,1,2,3,4,5,6]` |
+| `daysToSync` | Days of week to sync (0=Sun, 6=Sat) | `[0,1,2,3,4,5,6]` (all days) |
 | `rateLimitDelayMs` | Delay between operations | 1000 |
 | `lockTimeoutMs` | Lock timeout | 1500 |
 | `debugLogging` | Enable debug logging | `false` |
