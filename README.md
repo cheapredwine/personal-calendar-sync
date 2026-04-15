@@ -5,11 +5,10 @@ A Google Apps Script that automatically syncs busy time from your personal Googl
 ## Features
 
 - ✅ **One-way sync**: Personal calendar → Work calendar
-- ✅ **All 7 days of the week**: Configurable day filtering
-- ✅ **Smart filtering**: Exclude specific events, all-day events, or certain days
-- ✅ **Efficient**: O(n) algorithm with rate limiting and lock management
-- ✅ **Maintainable**: Clean code with comprehensive configuration section
-- ✅ **Detailed logging**: Track what's added, deleted, updated, or skipped
+- ✅ **Configurable filtering**: Skip specific events, certain days, or all-day events
+- ✅ **Duplicate prevention**: Won't create blocked time if work event already exists
+- ✅ **FREE event support**: Events marked "Free" on personal calendar are skipped
+- ✅ **Rate limiting & locking**: Prevents API quota issues and race conditions
 
 ## Setup Instructions
 
@@ -56,13 +55,13 @@ Your work Google account needs access to your personal calendar:
 
 > **Note**: If you use "See only free/busy", the `ignoredPersonalEventTitles` and `syncAllDayEvents` filters won't work (event titles are hidden). All busy times will be synced.
 
-### 6. Grant Permissions
+### 5. Grant Permissions
 
 1. In the Google Apps Script editor, select the `sync` function from the dropdown
 2. Click the **Run** button (▶️)
 3. Grant calendar permissions when prompted
 
-### 7. Set Up Triggers
+### 6. Set Up Triggers
 
 Click the clock icon (⏰ Triggers) → **Add Trigger**
 
@@ -161,16 +160,6 @@ To see what the script is doing:
 ### "Script already running"
 - This is normal - the lock prevents concurrent executions
 - The next trigger will run successfully
-
-## Comparison to Existing Solutions
-
-This script improves upon existing calendar sync solutions:
-
-- **Better code quality**: Clear variable names, modern JavaScript idioms
-- **More efficient**: O(n) algorithm vs O(n²) nested loops
-- **More configurable**: All parameters in one CONFIG object
-- **Better logging**: Detailed stats on what changed
-- **Safer**: Lock mechanism and rate limiting
 
 ## Development
 
