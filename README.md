@@ -156,7 +156,19 @@ To see what the script is doing:
 ### Events not syncing
 - Check the logs to see if events are being skipped
 - Verify `daysToSync` includes the day of week
-- Check if event title is in `ignoredPersonalEventTitles`
+
+### Phantom blocks appearing (no corresponding personal event)
+Shared calendars you have access to on your personal account can cause "phantom" blocks even if unchecked in the UI. The script sees ALL events from ALL calendars you have access to.
+
+**Fix:** Unsubscribe from the shared calendar completely (not just uncheck it):
+1. Go to your personal Google Calendar
+2. Find the shared calendar under "Other calendars"
+3. Click ⋮ → "Settings and sharing" → "Unsubscribe"
+
+**Note:** The script cannot identify which calendar an event originated from.
+
+### Which personal calendars are synced?
+Only your **primary calendar** (the one with your email address) is synced. Other calendars you own (like "car" or "vacation") are **not** synced unless explicitly configured. The script uses `personalCalendarId` to fetch exactly one calendar.
 
 ### "Script already running"
 - This is normal - the lock prevents concurrent executions
