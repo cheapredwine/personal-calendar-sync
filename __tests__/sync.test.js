@@ -197,4 +197,5 @@ describe('sync integration', () => {
     // Check logs
     expect(Logger._hasLog('Script already running')).toBe(true);
   });
+
 });

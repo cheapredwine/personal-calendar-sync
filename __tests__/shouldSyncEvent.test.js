@@ -55,4 +55,30 @@ describe('shouldSyncEvent', () => {
 
     expect(Code.shouldSyncEvent(event, Code.CONFIG.personalCalendarId)).toBe(true);
   });
+
+  test('should return true when originalCalendarId is undefined (not set)', () => {
+    const event = new MockCalendarEvent('Event', new Date('2026-04-14T10:00:00Z'), new Date('2026-04-14T11:00:00Z'), {
+      originalCalendarId: undefined
+    });
+
+    expect(Code.shouldSyncEvent(event, Code.CONFIG.personalCalendarId)).toBe(true);
+  });
+
+  test('should filter out events when originalCalendarId does not match personalCalendarId', () => {
+    // This documents the expected behavior: events from different calendars are filtered
+    const realCalendarId = 'real.person@example.com';
+    const differentCalendarId = 'other.calendar@example.com';
+
+    // Event from a different calendar (e.g., shared calendar)
+    const event = new MockCalendarEvent('Shared Meeting', new Date('2026-04-14T10:00:00Z'), new Date('2026-04-14T11:00:00Z'), {
+      originalCalendarId: differentCalendarId,
+      transparency: 'OPAQUE'
+    });
+
+    // Should be filtered out when checked against realCalendarId
+    expect(Code.shouldSyncEvent(event, realCalendarId)).toBe(false);
+
+    // Should be allowed when checked against its own calendar ID
+    expect(Code.shouldSyncEvent(event, differentCalendarId)).toBe(true);
+  });
 });

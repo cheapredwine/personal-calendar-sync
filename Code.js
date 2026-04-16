@@ -276,7 +276,11 @@ const getEventTimeKey = (event) => {
 const shouldSyncEvent = (event, personalCalendarId) => {
   // Only sync events from the primary personal calendar, not shared calendars
   const originalCalendarId = event.getOriginalCalendarId();
-  if (originalCalendarId && originalCalendarId !== personalCalendarId) {
+
+  // If originalCalendarId is explicitly set and different from personalCalendarId,
+  // this event is from a shared/delegated calendar - don't sync it
+  if (originalCalendarId !== null && originalCalendarId !== undefined && originalCalendarId !== personalCalendarId) {
+    debugLog(`Skipping event from different calendar: ${originalCalendarId} !== ${personalCalendarId}`);
     return false;
   }
 
