@@ -135,7 +135,7 @@ function sync() {
     Logger.log(`Found ${eventMaps.workEvents.size} work events, ${eventMaps.personalEvents.size} personal events`);
 
     const stats = createSyncStats();
-    synchronizeEvents(workCalendar, eventMaps, stats, CONFIG.personalCalendarId);
+    synchronizeEvents(workCalendar, eventMaps, stats);
 
     logCompletionStats(stats, startTime);
 
@@ -205,9 +205,9 @@ const buildEventMap = (events) => {
  * @param {string} personalCalendarId - The ID of the primary personal calendar
  * @returns {void}
  */
-const synchronizeEvents = (workCalendar, { workEvents, personalEvents }, stats, personalCalendarId) => {
-  removeStaleBlockedTimeEvents(workEvents, personalEvents, stats, personalCalendarId);
-  addNewBlockedTimeEvents(workCalendar, workEvents, personalEvents, stats, personalCalendarId);
+const synchronizeEvents = (workCalendar, { workEvents, personalEvents }, stats) => {
+  removeStaleBlockedTimeEvents(workEvents, personalEvents, stats);
+  addNewBlockedTimeEvents(workCalendar, workEvents, personalEvents, stats);
 };
 
 /**
@@ -273,17 +273,7 @@ const getEventTimeKey = (event) => {
  * @param {string} personalCalendarId - The ID of the primary personal calendar
  * @returns {boolean}
  */
-const shouldSyncEvent = (event, personalCalendarId) => {
-  // Only sync events from the primary personal calendar, not shared calendars
-  const originalCalendarId = event.getOriginalCalendarId();
-
-  // If originalCalendarId is explicitly set and different from personalCalendarId,
-  // this event is from a shared/delegated calendar - don't sync it
-  if (originalCalendarId !== null && originalCalendarId !== undefined && originalCalendarId !== personalCalendarId) {
-    debugLog(`Skipping event from different calendar: ${originalCalendarId} !== ${personalCalendarId}`);
-    return false;
-  }
-
+const shouldSyncEvent = (event) => {
   const isAllDay = event.isAllDayEvent();
   const dayOfWeek = event.getStartTime().getDay();
 
@@ -316,7 +306,7 @@ const shouldSyncEvent = (event, personalCalendarId) => {
  * @param {string} personalCalendarId - The ID of the primary personal calendar
  * @returns {void}
  */
-const removeStaleBlockedTimeEvents = (workEvents, personalEvents, stats, personalCalendarId) => {
+const removeStaleBlockedTimeEvents = (workEvents, personalEvents, stats) => {
   for (const [timeKey, workEventList] of workEvents) {
     // Find all blocked time events at this timeKey (there could be multiple if we created duplicates)
     const blockedTimeEvents = workEventList.filter(e => e.getTitle() === CONFIG.blockedTimeTitle);
@@ -331,7 +321,7 @@ const removeStaleBlockedTimeEvents = (workEvents, personalEvents, stats, persona
       Logger.log(`Checking timeKey ${timeKey}: ${blockedTimeEvents.length} blocked events, ${personalEventList?.length || 0} personal events`);
     }
     // Check if ANY personal event at this time should be synced
-    const hasValidPersonalEvent = personalEventList?.some(e => shouldSyncEvent(e, personalCalendarId));
+    const hasValidPersonalEvent = personalEventList?.some(e => shouldSyncEvent(e));
 
     if (!hasValidPersonalEvent) {
       // Personal event was deleted, marked FREE, or filtered out - delete ALL blocked times at this slot
@@ -370,10 +360,10 @@ const removeStaleBlockedTimeEvents = (workEvents, personalEvents, stats, persona
  * @param {string} personalCalendarId - The ID of the primary personal calendar
  * @returns {void}
  */
-const addNewBlockedTimeEvents = (workCalendar, workEvents, personalEvents, stats, personalCalendarId) => {
+const addNewBlockedTimeEvents = (workCalendar, workEvents, personalEvents, stats) => {
   for (const [timeKey, personalEventList] of personalEvents) {
     // Filter events that should be synced
-    const syncableEvents = personalEventList.filter(e => shouldSyncEvent(e, personalCalendarId));
+    const syncableEvents = personalEventList.filter(e => shouldSyncEvent(e));
 
     if (syncableEvents.length === 0) {
       stats.skipped += personalEventList.length;
