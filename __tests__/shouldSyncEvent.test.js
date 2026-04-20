@@ -71,4 +71,52 @@ describe('shouldSyncEvent', () => {
 
     expect(Code.shouldSyncEvent(event)).toBe(true);
   });
+
+  test('should return true for events where user is the owner', () => {
+    const event = new MockCalendarEvent('My Meeting', new Date('2026-04-14T10:00:00Z'), new Date('2026-04-14T11:00:00Z'), {
+      myStatus: CalendarApp.GuestStatus.OWNER
+    });
+
+    expect(Code.shouldSyncEvent(event)).toBe(true);
+  });
+
+  test('should return true for accepted invitations', () => {
+    const event = new MockCalendarEvent('Team Meeting', new Date('2026-04-14T10:00:00Z'), new Date('2026-04-14T11:00:00Z'), {
+      myStatus: CalendarApp.GuestStatus.YES
+    });
+
+    expect(Code.shouldSyncEvent(event)).toBe(true);
+  });
+
+  test('should return true for tentatively accepted invitations', () => {
+    const event = new MockCalendarEvent('Maybe Meeting', new Date('2026-04-14T10:00:00Z'), new Date('2026-04-14T11:00:00Z'), {
+      myStatus: CalendarApp.GuestStatus.MAYBE
+    });
+
+    expect(Code.shouldSyncEvent(event)).toBe(true);
+  });
+
+  test('should return false for declined invitations', () => {
+    const event = new MockCalendarEvent('Declined Meeting', new Date('2026-04-14T10:00:00Z'), new Date('2026-04-14T11:00:00Z'), {
+      myStatus: CalendarApp.GuestStatus.NO
+    });
+
+    expect(Code.shouldSyncEvent(event)).toBe(false);
+  });
+
+  test('should return false for invitations not yet responded to (mailing list events)', () => {
+    const event = new MockCalendarEvent('Mailing List Event', new Date('2026-04-14T10:00:00Z'), new Date('2026-04-14T11:00:00Z'), {
+      myStatus: CalendarApp.GuestStatus.INVITED
+    });
+
+    expect(Code.shouldSyncEvent(event)).toBe(false);
+  });
+
+  test('should return true for events with no myStatus (backward compatibility)', () => {
+    const event = new MockCalendarEvent('Legacy Event', new Date('2026-04-14T10:00:00Z'), new Date('2026-04-14T11:00:00Z'), {
+      myStatus: null
+    });
+
+    expect(Code.shouldSyncEvent(event)).toBe(true);
+  });
 });

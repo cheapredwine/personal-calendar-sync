@@ -8,6 +8,7 @@ A Google Apps Script that automatically syncs busy time from your personal Googl
 - ✅ **Duplicate prevention**: Won't create blocked time if you already have a work event at that time
 - ✅ **All-day event support**: Vacation and holidays sync as full-day blocks
 - ✅ **FREE event support**: Events marked "Free" on personal calendar are skipped
+- ✅ **Invitation filtering**: Skips events you haven't accepted (mailing list invites, declined events)
 - ✅ **Rate limiting & locking**: Prevents API quota issues and race conditions
 
 ## Setup Instructions
@@ -146,6 +147,16 @@ To see what the script is doing:
    - Execution time
 
 ## Troubleshooting
+
+### Mailing list events showing up on work calendar
+
+Events from mailing lists or calendar invitations you haven't accepted may appear on your personal calendar. The script now automatically filters these out:
+
+- **Declined events** (`NO` response) - Skipped
+- **Not responded** (`INVITED` status) - Skipped (common for mailing list events)
+- **Accepted** (`YES`), **Maybe** (`MAYBE`), and **Owner** events - Synced normally
+
+If you still see unwanted events, check that your personal calendar sharing settings are correct and that you haven't subscribed to any shared calendars you no longer want.
 
 ### "Could not access personal calendar"
 - Verify `personalCalendarId` is correct (the email of your personal Google account)

@@ -295,6 +295,21 @@ const shouldSyncEvent = (event) => {
   if (!CONFIG.daysToSync.includes(dayOfWeek)) {
     return false;
   }
+
+  // Check guest status - skip events where user hasn't accepted or has declined
+  // getMyStatus returns: YES, NO, MAYBE, INVITED, or OWNER
+  if (event.getMyStatus) {
+    const myStatus = event.getMyStatus();
+    // Skip if user declined the invitation
+    if (myStatus === CalendarApp.GuestStatus.NO) {
+      return false;
+    }
+    // Skip if user was invited but hasn't responded yet (mailing list events)
+    if (myStatus === CalendarApp.GuestStatus.INVITED) {
+      return false;
+    }
+  }
+
   return true;
 };
 

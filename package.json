@@ -1,6 +1,6 @@
 {
   "name": "personal-calendar-sync",
-  "version": "1.1.0",
+  "version": "1.4.0",
   "description": "Google Apps Script to sync busy time from personal calendar to work calendar",
   "scripts": {
     "test": "jest",

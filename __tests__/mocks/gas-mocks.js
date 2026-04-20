@@ -15,6 +15,7 @@ class MockCalendarEvent {
     this._isAllDay = options.isAllDay || false;
     this._transparency = options.transparency || 'OPAQUE';
     this._originalCalendarId = options.originalCalendarId || null;
+    this._myStatus = options.myStatus || null;
     this._reminders = [];
   }
 
@@ -60,6 +61,10 @@ class MockCalendarEvent {
 
   getOriginalCalendarId() {
     return this._originalCalendarId;
+  }
+
+  getMyStatus() {
+    return this._myStatus;
   }
 }
 
@@ -147,6 +152,14 @@ const MockCalendarApp = {
     RED: '10',
     BLACK: '11',
     GRAPE: '3',
+  }),
+
+  GuestStatus: Object.freeze({
+    YES: 'yes',
+    NO: 'no',
+    MAYBE: 'maybe',
+    INVITED: 'invited',
+    OWNER: 'owner',
   }),
 };
 
