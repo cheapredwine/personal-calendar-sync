@@ -135,6 +135,79 @@ Set in `CONFIG.eventColor` using the ID string, e.g., `eventColor: '3'` for Grap
 4. **Adds new blocks**: Creates new blocked time events for personal calendar events that don't exist on work calendar
 5. **Filters intelligently**: Skips events based on title, day of week, and all-day status
 
+## How Identity & Authorization Work
+
+### The Script Runs As You
+
+When you paste this code into [script.google.com](https://script.google.com) while logged into your **work account**, the script runs with **that account's identity and permissions**. There's no separate API key or service account—Google Apps Script executes as the authenticated user.
+
+```javascript
+// This gets the DEFAULT calendar - your work calendar
+const workCalendar = CalendarApp.getDefaultCalendar();
+```
+
+### OAuth Authorization Flow
+
+The first time you run `sync()` manually, Google handles authorization automatically:
+
+1. **Script detects API usage** - Calling `CalendarApp` methods triggers the OAuth flow
+2. **Consent screen appears** - Google asks: "This app wants to access your Google Calendar"
+3. **You click "Allow"** - Google grants OAuth tokens to the script
+4. **Google stores the tokens** - Tokens are securely stored and associated with your account + this script
+
+After that first authorization, every execution uses those stored tokens automatically. You don't need to re-authorize unless:
+- The script requests new scopes (e.g., adding Gmail access)
+- You revoke access at [myaccount.google.com/permissions](https://myaccount.google.com/permissions)
+
+### Requested OAuth Scopes
+
+The script automatically requests these scopes based on the APIs used:
+
+- `https://www.googleapis.com/auth/calendar` - Full calendar access (read/write)
+- `https://www.googleapis.com/auth/calendar.events` - Event management
+- `https://www.googleapis.com/auth/script.lockservice` - Execution locking
+
+View the actual scopes in your project: **Apps Script Project → Project Settings → Scopes**
+
+### Accessing Your Personal Calendar
+
+The script accesses your personal Gmail calendar while running as your work account:
+
+```javascript
+const personalCalendar = CalendarApp.getCalendarById('your.personal.email@gmail.com');
+```
+
+This works because your personal calendar is **shared with your work account** (Step 4 in setup). The script uses your work account's sharing permissions to read the personal calendar.
+
+### Triggers Use the Same Identity
+
+When you set up time-driven or calendar triggers, they execute with **the same identity** as when you created them. The trigger stores the OAuth tokens and uses them for each execution. This means:
+
+- **Calendar triggers** run as your work account
+- **Time-driven triggers** run as your work account
+- **Manual runs** run as your work account
+
+### No API Keys or Secrets Needed
+
+Unlike traditional API integrations that require:
+- Google Cloud project setup
+- OAuth client ID/secret
+- Service account JSON keys
+- Token refresh logic
+
+Google Apps Script handles all of this for you:
+- ✅ Google hosts the script
+- ✅ Google manages OAuth tokens
+- ✅ Google refreshes expired tokens automatically
+- ✅ Google handles all OAuth flows
+
+### Security Implications
+
+- **Script editors**: Anyone with edit access to the script can modify it to run actions as you
+- **Scope limits**: The script can only access what **you** can access
+- **Account deactivation**: If your work account is deactivated, triggers stop working
+- **Revoking access**: You can revoke permissions anytime at [myaccount.google.com/permissions](https://myaccount.google.com/permissions)
+
 ## Viewing Logs
 
 To see what the script is doing:
