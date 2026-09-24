@@ -1,0 +1,25 @@
+AGENTS.md
+  s_a3b2252f206b6e::t_5ce91e44fcab13 135-142
+CHANGELOG.md
+  s_a3b2252f206b6e::t_ee1107474b701b 8-13
+README.md
+  s_a3b2252f206b6e::t_90c52c05003119 9,58-59,140-141
+package.json
+  s_a3b2252f206b6e::t_5a39550e5d1062 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "3f3cc20c6aff73b40b09cc627514c8c3ef10d980",
+  "prompts": {},
+  "sessions": {
+    "s_a3b2252f206b6e": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "0a216bde-7616-4db1-ac16-18a0aa93247b",
+        "model": "unknown"
+      },
+      "human_author": "Jason Sherron <jsherron@cloudflare.com>"
+    }
+  }
+}
