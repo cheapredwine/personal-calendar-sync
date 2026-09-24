@@ -32,6 +32,9 @@ const CONFIG = Object.freeze({
   // The title shown on work calendar for blocked time
   blockedTimeTitle: 'Busy Personal Time',
 
+  // Marker used to identify events created by this script
+  syncMarker: '[personal-calendar-sync:v1]',
+
   // Event color on work calendar (see color reference at end of file)
   // Use '2' for Sage/pale green, or see CalendarApp.EventColor constants
   eventColor: '2', // Sage/pale green
@@ -60,6 +63,7 @@ const CONFIG = Object.freeze({
  * @property {number} daysInPast
  * @property {number} daysInFuture
  * @property {string} blockedTimeTitle
+ * @property {string} syncMarker
  * @property {string} eventColor
  * @property {boolean} syncAllDayEvents
  * @property {ReadonlyArray<number>} daysToSync
@@ -268,6 +272,19 @@ const getEventTimeKey = (event) => {
 };
 
 /**
+ * Check whether a work event was created by this script
+ * @param {GoogleAppsScript.Calendar.CalendarEvent} event
+ * @returns {boolean}
+ */
+const isOwnedBlockedTimeEvent = (event) => {
+  if (event.getTitle() !== CONFIG.blockedTimeTitle || !event.getDescription) {
+    return false;
+  }
+
+  return String(event.getDescription() || '').includes(CONFIG.syncMarker);
+};
+
+/**
  * Check if a personal event should be synced based on configuration
  * @param {GoogleAppsScript.Calendar.CalendarEvent} event
  * @param {string} personalCalendarId - The ID of the primary personal calendar
@@ -324,7 +341,7 @@ const shouldSyncEvent = (event) => {
 const removeStaleBlockedTimeEvents = (workEvents, personalEvents, stats) => {
   for (const [timeKey, workEventList] of workEvents) {
     // Find all blocked time events at this timeKey (there could be multiple if we created duplicates)
-    const blockedTimeEvents = workEventList.filter(e => e.getTitle() === CONFIG.blockedTimeTitle);
+    const blockedTimeEvents = workEventList.filter(isOwnedBlockedTimeEvent);
 
     if (blockedTimeEvents.length === 0) {
       continue;
@@ -401,12 +418,14 @@ const addNewBlockedTimeEvents = (workCalendar, workEvents, personalEvents, stats
     // (includes our blocked time events OR manually copied events)
     const workEventList = workEvents.get(timeKey) || [];
     if (workEventList.length > 0) {
-      // Check if it's our blocked time or a manually copied event with same title
-      const hasBlockedTime = workEventList.some(e => e.getTitle() === CONFIG.blockedTimeTitle);
+      // Only marked blocked events are owned by this script. Legacy or manual
+      // events with the same title are left untouched and prevent a duplicate.
+      const hasBlockedTime = workEventList.some(isOwnedBlockedTimeEvent);
+      const hasLegacyBlockedTime = workEventList.some(e => e.getTitle() === CONFIG.blockedTimeTitle);
       const hasMatchingEvent = workEventList.some(e => 
         syncableEvents.some(pe => pe.getTitle() === e.getTitle())
       );
-      if (hasBlockedTime || hasMatchingEvent) {
+      if (hasBlockedTime || hasLegacyBlockedTime || hasMatchingEvent) {
         stats.skipped += syncableEvents.length;
         continue;
       }
@@ -426,6 +445,7 @@ const addNewBlockedTimeEvents = (workCalendar, workEvents, personalEvents, stats
       : workCalendar.createEvent(CONFIG.blockedTimeTitle, startTime, endTime);
 
     newEvent.setColor(CONFIG.eventColor);
+    newEvent.setDescription(CONFIG.syncMarker);
     newEvent.removeAllReminders();
     stats.added++;
 

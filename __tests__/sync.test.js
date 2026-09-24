@@ -49,6 +49,7 @@ describe('sync integration', () => {
     expect(workEvents.length).toBe(1);
     expect(workEvents[0].getTitle()).toBe(Code.CONFIG.blockedTimeTitle);
     expect(workEvents[0].getColor()).toBe(Code.CONFIG.eventColor);
+    expect(workEvents[0].getDescription()).toBe(Code.CONFIG.syncMarker);
   });
 
   test('should preserve all-day status and exclusive end date for multi-day events', () => {
@@ -80,7 +81,9 @@ describe('sync integration', () => {
     endDate.setDate(endDate.getDate() + 3);
 
     personalCalendar.createAllDayEvent('Conference', startDate, endDate);
-    workCalendar.createEvent(Code.CONFIG.blockedTimeTitle, startDate, endDate);
+    workCalendar.createEvent(Code.CONFIG.blockedTimeTitle, startDate, endDate, {
+      description: Code.CONFIG.syncMarker,
+    });
 
     Code.sync();
 
@@ -100,7 +103,10 @@ describe('sync integration', () => {
 
     // Add event to both calendars
     personalCalendar.createEvent('Personal Meeting', startTime, endTime);
-    workCalendar.createEvent(Code.CONFIG.blockedTimeTitle, startTime, endTime, { color: Code.CONFIG.eventColor });
+    workCalendar.createEvent(Code.CONFIG.blockedTimeTitle, startTime, endTime, {
+      color: Code.CONFIG.eventColor,
+      description: Code.CONFIG.syncMarker,
+    });
 
     // Run sync
     Code.sync();
@@ -144,7 +150,10 @@ describe('sync integration', () => {
     const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
 
     // Only add to work calendar (stale event)
-    workCalendar.createEvent(Code.CONFIG.blockedTimeTitle, startTime, endTime, { color: Code.CONFIG.eventColor });
+    workCalendar.createEvent(Code.CONFIG.blockedTimeTitle, startTime, endTime, {
+      color: Code.CONFIG.eventColor,
+      description: Code.CONFIG.syncMarker,
+    });
 
     // Run sync
     Code.sync();
@@ -152,6 +161,20 @@ describe('sync integration', () => {
     // Stale event should be deleted
     const workEvents = workCalendar.getAllEvents().filter(e => !e.isDeleted());
     expect(workEvents.length).toBe(0);
+  });
+
+  test('should not delete unmarked events with the blocked time title', () => {
+    const workCalendar = global.CalendarApp.getDefaultCalendar();
+    const now = new Date();
+    const startTime = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    startTime.setHours(10, 0, 0, 0);
+    const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
+
+    const manualEvent = workCalendar.createEvent(Code.CONFIG.blockedTimeTitle, startTime, endTime);
+
+    Code.sync();
+
+    expect(manualEvent.isDeleted()).toBe(false);
   });
 
   test('should NEVER delete non-blocked-time work events (safety guard)', () => {

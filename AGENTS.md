@@ -89,6 +89,7 @@ All config is in the `CONFIG` object at the top of Code.js:
   daysInFuture: 90,
   debugLogging: false,
   blockedTimeTitle: 'Busy Personal Time',
+  syncMarker: '[personal-calendar-sync:v1]',
   eventColor: '2', // Sage/pale green
   syncAllDayEvents: true,
   daysToSync: [0, 1, 2, 3, 4, 5, 6], // All days
@@ -139,4 +140,8 @@ See README.md for detailed setup instructions.
 
 **Cause:** Google Apps Script's `createEvent()` creates a timed event even when the source event starts and ends at midnight. All-day events must be created with `createAllDayEvent()`.
 
-**Solution:** `addNewBlockedTimeEvents()` uses `createAllDayEvent(title, startDate, endDate)` for all-day sources. The end date is exclusive, matching Google Calendar's all-day event model. Existing incorrectly-created timed blocked events are replaced on the next sync.
+**Solution:** `addNewBlockedTimeEvents()` uses `createAllDayEvent(title, startDate, endDate)` for all-day sources. The end date is exclusive, matching Google Calendar's all-day event model. Existing marked incorrectly-created timed blocked events are replaced on the next sync; unmarked legacy events are left untouched for safety.
+
+### Event Ownership Safety
+
+Blocked events created by the script contain `CONFIG.syncMarker` in their description. Deletion and all-day repair only operate on marked events. Events with the blocked title but without the marker are treated as legacy or manual events and are left untouched; remove those manually once before enabling the marker-based version if they need migration.

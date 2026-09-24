@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-
+- All-day personal events now create all-day blocked events on the work calendar
+- Multi-day all-day events preserve Google Calendar's exclusive end date
+- Existing timed blocked events created from all-day sources are repaired on the next sync
+- Added regression coverage for multi-day all-day creation and repair
+- Blocked event cleanup now requires a script ownership marker, protecting unrelated same-title events
+- Added regression coverage for unmarked same-title events
 
 ## [1.4.0] - 2026-04-20
 

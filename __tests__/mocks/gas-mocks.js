@@ -12,6 +12,7 @@ class MockCalendarEvent {
     this._startTime = new Date(startTime);
     this._endTime = new Date(endTime);
     this._color = options.color || '0';
+    this._description = options.description || '';
     this._isAllDay = options.isAllDay || false;
     this._transparency = options.transparency || 'OPAQUE';
     this._originalCalendarId = options.originalCalendarId || null;
@@ -37,6 +38,14 @@ class MockCalendarEvent {
 
   setColor(color) {
     this._color = color;
+  }
+
+  getDescription() {
+    return this._description;
+  }
+
+  setDescription(description) {
+    this._description = description;
   }
 
   isAllDayEvent() {

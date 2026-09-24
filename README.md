@@ -7,6 +7,7 @@ A Google Apps Script that automatically syncs busy time from your personal Googl
 - ✅ **One-way sync**: Personal calendar → Work calendar
 - ✅ **Duplicate prevention**: Won't create blocked time if you already have a work event at that time
 - ✅ **All-day event support**: Vacation and holidays sync as full-day blocks, including multi-day spans
+- ✅ **Ownership-safe cleanup**: Only blocked events created by this script can be deleted or repaired
 - ✅ **FREE event support**: Events marked "Free" on personal calendar are skipped
 - ✅ **Invitation filtering**: Skips events you haven't accepted (mailing list invites, declined events)
 - ✅ **Rate limiting & locking**: Prevents API quota issues and race conditions
@@ -35,6 +36,7 @@ const CONFIG = {
   personalCalendarId: 'your.personal.email@gmail.com', // ← CHANGE THIS
   blockedTimeTitle: 'Busy Personal Time',
   eventColor: '2', // Sage/pale green
+  syncMarker: '[personal-calendar-sync:v1]',
   daysToSync: [0, 1, 2, 3, 4, 5, 6], // All days
   // ... see Code.js for all options
 };
@@ -104,6 +106,7 @@ Click the clock icon (⏰ Triggers) → **Add Trigger**
 | `daysInFuture` | Days in the future to sync | 90 |
 | `blockedTimeTitle` | Title shown on work calendar | 'Busy Personal Time' |
 | `eventColor` | Color code (see below) | '2' (Sage/pale green) |
+| `syncMarker` | Description marker identifying script-created events | '[personal-calendar-sync:v1]' |
 | `daysToSync` | Days of week to sync (0=Sun, 6=Sat) | `[0,1,2,3,4,5,6]` (all days) |
 | `rateLimitDelayMs` | Delay between operations | 1000 |
 | `lockTimeoutMs` | Lock timeout | 1500 |
@@ -138,6 +141,8 @@ Set in `CONFIG.eventColor` using the ID string, e.g., `eventColor: '3'` for Grap
 5. **Filters intelligently**: Skips events based on title, day of week, and all-day status
 
 All-day source events are created with `createAllDayEvent()` rather than `createEvent()`. This matters because a midnight-to-midnight timed event is not the same as an all-day event in Google Calendar and may not appear in the all-day row or availability views as expected.
+
+The script writes `syncMarker` into the description of every blocked event it creates. Cleanup and all-day repair only affect events with that marker. Older blocked events created before marker support are left untouched; remove or migrate those manually if needed.
 
 ## How Identity & Authorization Work
 
