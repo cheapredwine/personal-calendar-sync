@@ -6,7 +6,7 @@ A Google Apps Script that automatically syncs busy time from your personal Googl
 
 - ✅ **One-way sync**: Personal calendar → Work calendar
 - ✅ **Duplicate prevention**: Won't create blocked time if you already have a work event at that time
-- ✅ **All-day event support**: Vacation and holidays sync as full-day blocks
+- ✅ **All-day event support**: Vacation and holidays sync as full-day blocks, including multi-day spans
 - ✅ **FREE event support**: Events marked "Free" on personal calendar are skipped
 - ✅ **Invitation filtering**: Skips events you haven't accepted (mailing list invites, declined events)
 - ✅ **Rate limiting & locking**: Prevents API quota issues and race conditions
@@ -55,6 +55,8 @@ Your work Google account needs access to your personal calendar:
 - The script creates "Busy Personal Time" blocks on your work calendar for all busy times
 - **FREE events are skipped**: Events you mark as "Free" availability on your personal calendar won't sync
 - **All-day events sync**: Vacation, holidays, and other all-day events create full-day blocks
+- **All-day event fidelity**: All-day sources use Google Calendar's all-day event type and preserve the exclusive end date for multi-day events
+- **Automatic repair**: Previously-created timed blocks for all-day sources are replaced on the next sync
 - **Duplicate prevention**: Won't create a block if you already have a work event at that time
 
 **Verify access**: From your work account, go to Google Calendar → **+** next to "Other calendars" → **Subscribe to calendar** → enter your personal email. If it adds successfully, you're good to go.
@@ -134,6 +136,8 @@ Set in `CONFIG.eventColor` using the ID string, e.g., `eventColor: '3'` for Grap
 3. **Updates existing**: Ensures color is correct on existing blocked time events
 4. **Adds new blocks**: Creates new blocked time events for personal calendar events that don't exist on work calendar
 5. **Filters intelligently**: Skips events based on title, day of week, and all-day status
+
+All-day source events are created with `createAllDayEvent()` rather than `createEvent()`. This matters because a midnight-to-midnight timed event is not the same as an all-day event in Google Calendar and may not appear in the all-day row or availability views as expected.
 
 ## How Identity & Authorization Work
 

@@ -99,6 +99,10 @@ class MockCalendar {
     return event;
   }
 
+  createAllDayEvent(title, startTime, endTime) {
+    return this.createEvent(title, startTime, endTime, { isAllDay: true });
+  }
+
   addEvent(event) {
     this._events.push(event);
   }

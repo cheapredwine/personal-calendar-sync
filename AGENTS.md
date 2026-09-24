@@ -132,3 +132,11 @@ This is a Google Apps Script project. To deploy:
 4. Set up triggers (calendar updates + daily backup)
 
 See README.md for detailed setup instructions.
+
+### All-Day Events Created as Timed Events
+
+**Problem:** A blocked event appears as `12 AM - 12 AM` with the All-day toggle off instead of appearing in the all-day row.
+
+**Cause:** Google Apps Script's `createEvent()` creates a timed event even when the source event starts and ends at midnight. All-day events must be created with `createAllDayEvent()`.
+
+**Solution:** `addNewBlockedTimeEvents()` uses `createAllDayEvent(title, startDate, endDate)` for all-day sources. The end date is exclusive, matching Google Calendar's all-day event model. Existing incorrectly-created timed blocked events are replaced on the next sync.

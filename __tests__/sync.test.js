@@ -51,6 +51,44 @@ describe('sync integration', () => {
     expect(workEvents[0].getColor()).toBe(Code.CONFIG.eventColor);
   });
 
+  test('should preserve all-day status and exclusive end date for multi-day events', () => {
+    const workCalendar = global.CalendarApp.getDefaultCalendar();
+    const personalCalendar = global.CalendarApp.getCalendarById(Code.CONFIG.personalCalendarId);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() + 2);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 3);
+
+    personalCalendar.createAllDayEvent('Conference', startDate, endDate);
+
+    Code.sync();
+
+    const blockedEvent = workCalendar.getAllEvents()[0];
+    expect(blockedEvent.isAllDayEvent()).toBe(true);
+    expect(blockedEvent.getStartTime()).toEqual(startDate);
+    expect(blockedEvent.getEndTime()).toEqual(endDate);
+  });
+
+  test('should repair an existing timed blocked event for an all-day source event', () => {
+    const workCalendar = global.CalendarApp.getDefaultCalendar();
+    const personalCalendar = global.CalendarApp.getCalendarById(Code.CONFIG.personalCalendarId);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() + 2);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 3);
+
+    personalCalendar.createAllDayEvent('Conference', startDate, endDate);
+    workCalendar.createEvent(Code.CONFIG.blockedTimeTitle, startDate, endDate);
+
+    Code.sync();
+
+    const workEvents = workCalendar.getAllEvents().filter(event => !event.isDeleted());
+    expect(workEvents).toHaveLength(1);
+    expect(workEvents[0].isAllDayEvent()).toBe(true);
+  });
+
   test('should not duplicate existing blocked time events', () => {
     const workCalendar = global.CalendarApp.getDefaultCalendar();
     const personalCalendar = global.CalendarApp.getCalendarById(Code.CONFIG.personalCalendarId);

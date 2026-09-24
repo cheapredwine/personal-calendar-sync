@@ -350,8 +350,20 @@ const removeStaleBlockedTimeEvents = (workEvents, personalEvents, stats) => {
         Utilities.sleep(CONFIG.rateLimitDelayMs);
       }
     } else {
+      const representativePersonalEvent = personalEventList.find(e => shouldSyncEvent(e));
+      const shouldBeAllDay = representativePersonalEvent.isAllDayEvent();
+
       // Event still exists, ensure color is correct on all blocked times
       for (const workEvent of blockedTimeEvents) {
+        if (workEvent.isAllDayEvent() !== shouldBeAllDay) {
+          Logger.log(`Replacing blocked time with ${shouldBeAllDay ? 'all-day' : 'timed'} event`);
+          workEvent.deleteEvent();
+          workEvents.set(timeKey, workEventList.filter(event => event !== workEvent));
+          stats.deleted++;
+          Utilities.sleep(CONFIG.rateLimitDelayMs);
+          continue;
+        }
+
         if (workEvent.getColor() !== CONFIG.eventColor) {
           const startTime = workEvent.getStartTime();
           const endTime = workEvent.getEndTime();
@@ -409,11 +421,9 @@ const addNewBlockedTimeEvents = (workCalendar, workEvents, personalEvents, stats
     const timeStr = `${startTime.toLocaleString()} - ${endTime.toLocaleString()}`;
     Logger.log(`Creating new blocked time: "${title}" at ${timeStr}`);
 
-    const newEvent = workCalendar.createEvent(
-      CONFIG.blockedTimeTitle,
-      startTime,
-      endTime
-    );
+    const newEvent = representativeEvent.isAllDayEvent()
+      ? workCalendar.createAllDayEvent(CONFIG.blockedTimeTitle, startTime, endTime)
+      : workCalendar.createEvent(CONFIG.blockedTimeTitle, startTime, endTime);
 
     newEvent.setColor(CONFIG.eventColor);
     newEvent.removeAllReminders();
