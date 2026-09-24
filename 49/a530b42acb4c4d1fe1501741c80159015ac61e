@@ -1,0 +1,19 @@
+__tests__/sync.test.js
+  s_a3b2252f206b6e::t_8d2cf5330d1ff1 168,174,182-223
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "49a530b42acb4c4d1fe1501741c80159015ac61e",
+  "prompts": {},
+  "sessions": {
+    "s_a3b2252f206b6e": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "0a216bde-7616-4db1-ac16-18a0aa93247b",
+        "model": "unknown"
+      },
+      "human_author": "Jason Sherron <jsherron@cloudflare.com>"
+    }
+  }
+}
