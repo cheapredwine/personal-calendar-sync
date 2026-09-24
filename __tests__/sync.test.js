@@ -165,16 +165,60 @@ describe('sync integration', () => {
 
   test('should not delete unmarked events with the blocked time title', () => {
     const workCalendar = global.CalendarApp.getDefaultCalendar();
+    const personalCalendar = global.CalendarApp.getCalendarById(Code.CONFIG.personalCalendarId);
     const now = new Date();
     const startTime = new Date(now.getTime() + 24 * 60 * 60 * 1000);
     startTime.setHours(10, 0, 0, 0);
     const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
 
+    personalCalendar.createEvent('Personal Meeting', startTime, endTime);
     const manualEvent = workCalendar.createEvent(Code.CONFIG.blockedTimeTitle, startTime, endTime);
 
     Code.sync();
 
     expect(manualEvent.isDeleted()).toBe(false);
+  });
+
+  test('should update color on a marked all-day event without changing its type', () => {
+    const workCalendar = global.CalendarApp.getDefaultCalendar();
+    const personalCalendar = global.CalendarApp.getCalendarById(Code.CONFIG.personalCalendarId);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() + 2);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 2);
+
+    personalCalendar.createAllDayEvent('Conference', startDate, endDate);
+    const blockedEvent = workCalendar.createAllDayEvent(Code.CONFIG.blockedTimeTitle, startDate, endDate);
+    blockedEvent.setColor('3');
+    blockedEvent.setDescription(Code.CONFIG.syncMarker);
+
+    Code.sync();
+
+    expect(blockedEvent.isDeleted()).toBe(false);
+    expect(blockedEvent.isAllDayEvent()).toBe(true);
+    expect(blockedEvent.getColor()).toBe(Code.CONFIG.eventColor);
+  });
+
+  test('should preserve the timed type of a marked timed event', () => {
+    const workCalendar = global.CalendarApp.getDefaultCalendar();
+    const personalCalendar = global.CalendarApp.getCalendarById(Code.CONFIG.personalCalendarId);
+    const startTime = new Date();
+    startTime.setDate(startTime.getDate() + 2);
+    startTime.setHours(10, 0, 0, 0);
+    const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
+
+    personalCalendar.createEvent('Personal Meeting', startTime, endTime);
+    const blockedEvent = workCalendar.createEvent(Code.CONFIG.blockedTimeTitle, startTime, endTime, {
+      color: Code.CONFIG.eventColor,
+      description: Code.CONFIG.syncMarker,
+    });
+
+    Code.sync();
+
+    expect(blockedEvent.isDeleted()).toBe(false);
+    expect(blockedEvent.isAllDayEvent()).toBe(false);
+    expect(blockedEvent.getDescription()).toBe(Code.CONFIG.syncMarker);
   });
 
   test('should NEVER delete non-blocked-time work events (safety guard)', () => {
