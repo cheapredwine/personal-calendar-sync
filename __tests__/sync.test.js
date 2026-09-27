@@ -163,6 +163,37 @@ describe('sync integration', () => {
     expect(workEvents.length).toBe(0);
   });
 
+  test('should move a blocked event when the personal event is rescheduled', () => {
+    const workCalendar = global.CalendarApp.getDefaultCalendar();
+    const personalCalendar = global.CalendarApp.getCalendarById(Code.CONFIG.personalCalendarId);
+    const now = new Date();
+    const startTime = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    startTime.setHours(10, 0, 0, 0);
+    const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
+
+    // First sync creates a marked block for the personal event
+    personalCalendar.createEvent('Dentist', startTime, endTime);
+    Code.sync();
+    expect(workCalendar.getAllEvents().filter(e => !e.isDeleted())).toHaveLength(1);
+
+    // Reschedule the personal event to a later time
+    personalCalendar.clearEvents();
+    const newStart = new Date(startTime.getTime() + 4 * 60 * 60 * 1000);
+    const newEnd = new Date(newStart.getTime() + 60 * 60 * 1000);
+    personalCalendar.createEvent('Dentist', newStart, newEnd);
+
+    Code.sync();
+
+    // Old block deleted, new marked block created at the new time
+    const remaining = workCalendar.getAllEvents().filter(e => !e.isDeleted());
+    expect(remaining).toHaveLength(1);
+    expect(remaining[0].getStartTime().getTime()).toBe(newStart.getTime());
+    expect(remaining[0].getEndTime().getTime()).toBe(newEnd.getTime());
+    expect(remaining[0].getDescription()).toBe(Code.CONFIG.syncMarker);
+    const deleted = workCalendar.getAllEvents().filter(e => e.isDeleted());
+    expect(deleted).toHaveLength(1);
+  });
+
   test('should not delete unmarked events with the blocked time title', () => {
     const workCalendar = global.CalendarApp.getDefaultCalendar();
     const personalCalendar = global.CalendarApp.getCalendarById(Code.CONFIG.personalCalendarId);

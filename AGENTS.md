@@ -144,4 +144,6 @@ See README.md for detailed setup instructions.
 
 ### Event Ownership Safety
 
-Blocked events created by the script contain `CONFIG.syncMarker` in their description. Deletion and all-day repair only operate on marked events. Events with the blocked title but without the marker are treated as legacy or manual events and are left untouched; remove those manually once before enabling the marker-based version if they need migration.
+Blocked events created by the script contain `CONFIG.syncMarker` in their description. Deletion and all-day repair only operate on marked events. Events with the blocked title but without the marker are treated as legacy or manual events and are left untouched.
+
+Legacy blocked events created before v1.5.0 (which had no marker) are adopted automatically: on the first fully successful sync after upgrading, `adoptLegacyBlockedTimeEvents()` appends the marker to every same-title event it finds, so normal cleanup applies to them from then on. The migration runs exactly once — a `personal-calendar-sync:ownership-migration-v1-done` flag in Script Properties gates it, and the flag is only persisted after a sync completes without error (a failed run is safely retried). Same-title events created *after* the migration are never adopted and are never deleted or repaired; they only prevent duplicate block creation at their time slot.

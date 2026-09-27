@@ -14,6 +14,7 @@ describe('createSyncStats', () => {
       deleted: 0,
       updated: 0,
       added: 0,
+      adopted: 0,
       skipped: 0,
     });
   });

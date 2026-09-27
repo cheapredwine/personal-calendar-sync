@@ -53,6 +53,10 @@ const CONFIG = Object.freeze({
   lockTimeoutMs: 1500,
 });
 
+// Flag persisted in Script Properties so the one-time legacy ownership
+// migration (see adoptLegacyBlockedTimeEvents) runs exactly once
+const OWNERSHIP_MIGRATION_FLAG = 'personal-calendar-sync:ownership-migration-v1-done';
+
 // ============================================================================
 // TYPES (for JSDoc/documentation purposes)
 // ============================================================================
@@ -94,6 +98,7 @@ const debugLog = (message) => {
  * @property {number} deleted
  * @property {number} updated
  * @property {number} added
+ * @property {number} adopted
  * @property {number} skipped
  */
 
@@ -139,7 +144,16 @@ function sync() {
     Logger.log(`Found ${eventMaps.workEvents.size} work events, ${eventMaps.personalEvents.size} personal events`);
 
     const stats = createSyncStats();
+    // One-time migration of pre-marker blocked events; must run before cleanup
+    // so adopted events are cleaned up in the same pass
+    const migrationPending = !hasOwnershipMigrationRun();
+    adoptLegacyBlockedTimeEvents(eventMaps.workEvents, stats);
     synchronizeEvents(workCalendar, eventMaps, stats);
+    if (migrationPending) {
+      // Only mark the migration complete once a sync has fully succeeded,
+      // so a failed run is retried (adoption is idempotent)
+      markOwnershipMigrationDone();
+    }
 
     logCompletionStats(stats, startTime);
 
@@ -222,6 +236,7 @@ const createSyncStats = () => ({
   deleted: 0,
   updated: 0,
   added: 0,
+  adopted: 0,
   skipped: 0,
 });
 
@@ -234,7 +249,7 @@ const createSyncStats = () => ({
 const logCompletionStats = (stats, startTimeMs) => {
   const elapsed = ((Date.now() - startTimeMs) / 1000).toFixed(1);
   Logger.log('=== Sync complete ===');
-  Logger.log(`Added: ${stats.added}, Deleted: ${stats.deleted}, Updated: ${stats.updated}, Skipped: ${stats.skipped}`);
+  Logger.log(`Added: ${stats.added}, Deleted: ${stats.deleted}, Updated: ${stats.updated}, Adopted: ${stats.adopted}, Skipped: ${stats.skipped}`);
   Logger.log(`Elapsed time: ${elapsed}s`);
 };
 
@@ -282,6 +297,82 @@ const isOwnedBlockedTimeEvent = (event) => {
   }
 
   return String(event.getDescription() || '').includes(CONFIG.syncMarker);
+};
+
+/**
+ * Check whether the one-time legacy ownership migration has already run.
+ * Fail-safe: if Script Properties cannot be read, report the migration as
+ * done so unmarked events are never adopted or deleted unexpectedly.
+ * @returns {boolean}
+ */
+const hasOwnershipMigrationRun = () => {
+  try {
+    return PropertiesService.getScriptProperties().getProperty(OWNERSHIP_MIGRATION_FLAG) === 'true';
+  } catch (error) {
+    return true;
+  }
+};
+
+/**
+ * Persist the flag marking the legacy ownership migration as complete
+ * @returns {void}
+ */
+const markOwnershipMigrationDone = () => {
+  try {
+    PropertiesService.getScriptProperties().setProperty(OWNERSHIP_MIGRATION_FLAG, 'true');
+  } catch (error) {
+    debugLog(`Could not persist ownership migration flag: ${error?.message ?? error}`);
+  }
+};
+
+/**
+ * One-time migration: claim blocked time events created before the ownership
+ * marker existed by adding the marker to their description. Blocked events
+ * created before v1.5.0 carry no marker, so without this migration the
+ * cleanup pass never considers them stale and they outlive the personal
+ * events they were created for (e.g. after an event is moved or deleted).
+ *
+ * The marker is appended to any existing description so user notes are kept.
+ * The migration runs on the first fully successful sync only; a later-created
+ * event that merely shares the blocked time title is never adopted.
+ * If the sync fails partway, the flag is not persisted and this re-runs
+ * safely on the next execution: events already carrying the marker are skipped.
+ * @param {Map<string, GoogleAppsScript.Calendar.CalendarEvent[]>} workEvents
+ * @param {SyncStats} stats
+ * @returns {boolean} true if any legacy event was adopted
+ */
+const adoptLegacyBlockedTimeEvents = (workEvents, stats) => {
+  if (hasOwnershipMigrationRun()) {
+    return false;
+  }
+
+  let adopted = false;
+  for (const workEventList of workEvents.values()) {
+    for (const workEvent of workEventList) {
+      // Skip events we already own, and events we could never verify later
+      if (isOwnedBlockedTimeEvent(workEvent) || !workEvent.getDescription) {
+        continue;
+      }
+      if (workEvent.getTitle() !== CONFIG.blockedTimeTitle) {
+        continue;
+      }
+
+      const existingDescription = String(workEvent.getDescription() || '');
+      workEvent.setDescription(
+        existingDescription ? `${existingDescription}\n${CONFIG.syncMarker}` : CONFIG.syncMarker
+      );
+
+      const startTime = workEvent.getStartTime();
+      const endTime = workEvent.getEndTime();
+      const timeStr = `${startTime.toLocaleString()} - ${endTime.toLocaleString()}`;
+      Logger.log(`Adopting legacy blocked time: ${timeStr}`);
+      stats.adopted++;
+      adopted = true;
+      Utilities.sleep(CONFIG.rateLimitDelayMs);
+    }
+  }
+
+  return adopted;
 };
 
 /**
@@ -526,6 +617,7 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     sync,
     CONFIG,
+    OWNERSHIP_MIGRATION_FLAG,
     getDateRange,
     getEventTimeKey,
     shouldSyncEvent,
@@ -536,5 +628,8 @@ if (typeof module !== 'undefined' && module.exports) {
     synchronizeEvents,
     removeStaleBlockedTimeEvents,
     addNewBlockedTimeEvents,
+    hasOwnershipMigrationRun,
+    markOwnershipMigrationDone,
+    adoptLegacyBlockedTimeEvents,
   };
 }

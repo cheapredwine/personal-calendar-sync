@@ -216,6 +216,43 @@ const MockLockService = {
 };
 
 // ============================================================================
+// Mock Properties Service
+// ============================================================================
+
+class MockScriptProperties {
+  constructor() {
+    this._properties = new Map();
+  }
+
+  getProperty(key) {
+    return this._properties.has(key) ? this._properties.get(key) : null;
+  }
+
+  setProperty(key, value) {
+    this._properties.set(key, String(value));
+    return this;
+  }
+
+  deleteProperty(key) {
+    this._properties.delete(key);
+    return this;
+  }
+}
+
+const MockPropertiesService = {
+  _scriptProperties: new MockScriptProperties(),
+
+  getScriptProperties() {
+    return this._scriptProperties;
+  },
+
+  // Test helpers
+  _reset() {
+    this._scriptProperties = new MockScriptProperties();
+  },
+};
+
+// ============================================================================
 // Mock Logger
 // ============================================================================
 
@@ -272,6 +309,7 @@ global.CalendarApp = MockCalendarApp;
 global.LockService = MockLockService;
 global.Logger = MockLogger;
 global.Utilities = MockUtilities;
+global.PropertiesService = MockPropertiesService;
 
 // ============================================================================
 // Reset Function
@@ -282,6 +320,7 @@ function resetAllMocks() {
   MockLockService._reset();
   MockLogger._reset();
   MockUtilities._reset();
+  MockPropertiesService._reset();
 }
 
 module.exports = {
@@ -292,5 +331,6 @@ module.exports = {
   MockLockService,
   MockLogger,
   MockUtilities,
+  MockPropertiesService,
   resetAllMocks,
 };

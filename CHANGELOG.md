@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] - 2026-09-27
+
+### Fixed
+
+- Legacy blocked events created before the ownership marker existed (v1.5.0) are now adopted automatically on the first successful sync, so they are cleaned up when their personal event is moved, deleted, or marked Free. Previously they were left on the work calendar forever.
+- The adoption is gated by a `personal-calendar-sync:ownership-migration-v1-done` flag in Script Properties: it runs exactly once, only after a fully successful sync, and re-runs safely (idempotently) if a sync fails partway.
+- Adopting an event appends the marker to its description, preserving any existing notes.
+- Same-title events created after the migration are never adopted, deleted, or repaired.
+
+### Added
+
+- `Adopted` counter in sync completion stats
+- Regression coverage: legacy block cleanup on moved events, stale legacy cleanup, adoption idempotency and failure recovery, post-migration protection of unmarked events, and marked-event rescheduling
+
 ## [1.5.0] - 2026-09-24
 
 ### Fixed

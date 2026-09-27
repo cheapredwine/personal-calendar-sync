@@ -142,7 +142,7 @@ Set in `CONFIG.eventColor` using the ID string, e.g., `eventColor: '3'` for Grap
 
 All-day source events are created with `createAllDayEvent()` rather than `createEvent()`. This matters because a midnight-to-midnight timed event is not the same as an all-day event in Google Calendar and may not appear in the all-day row or availability views as expected.
 
-The script writes `syncMarker` into the description of every blocked event it creates. Cleanup and all-day repair only affect events with that marker. Older blocked events created before marker support are left untouched; remove or migrate those manually if needed.
+The script writes `syncMarker` into the description of every blocked event it creates. Cleanup and all-day repair only affect events with that marker. Blocked events created before marker support are adopted automatically on the first sync after upgrading: the marker is appended to their description so they are managed like any other script-created block from then on. Same-title events created after that first sync are never adopted and are left untouched.
 
 ## How Identity & Authorization Work
 
